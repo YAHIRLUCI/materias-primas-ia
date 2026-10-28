@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Comercializadora inteligente de materias primas: catálogo, recetas con IA y preórdenes.">
+<title>Materias Primas IA</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.11"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+.is-hidden{display:none!important}
+.fade-in{animation:fade .3s ease-out}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.slide{transition:opacity .5s}.slide.off{opacity:0;pointer-events:none}
+.listening{animation:pulse 1s infinite;background:#dc2626!important;color:#fff!important}
+@keyframes pulse{0%{box-shadow:0 0 0 0 #dc262680}100%{box-shadow:0 0 0 10px #dc262600}}
+.scroll::-webkit-scrollbar{width:5px}.scroll::-webkit-scrollbar-thumb{background:#d97706;border-radius:3px}
+:focus-visible{outline:2px solid #f59e0b;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body class="bg-stone-50 text-gray-800 font-sans">
+
+<!-- LOGIN (demo de roles) -->
+<div id="login" class="fixed inset-0 z-[100] bg-gradient-to-br from-amber-950 via-amber-900 to-stone-900 overflow-y-auto p-4 flex items-center justify-center">
+  <div class="max-w-4xl w-full">
+    <div class="text-center mb-8">
+      <span class="inline-flex items-center gap-2 bg-amber-600/30 text-amber-200 text-xs font-semibold px-3 py-1 rounded-full mb-3"><i class="fa-solid fa-shield-halved"></i> Demo de roles y permisos</span>
+      <h1 class="text-3xl font-bold text-white mb-2">Materias Primas IA</h1>
+      <p class="text-amber-200 text-sm">Elige un perfil para ver qué pantalla y permisos tiene cada nivel</p>
+    </div>
+    <div id="login-cards" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    <p class="text-center text-amber-300/60 text-xs mt-6">Demo: no hay contraseñas reales. Los permisos reales deben validarse siempre en el servidor.</p>
+  </div>
+</div>
+
+<div id="app" class="is-hidden pb-28">
+<header class="bg-amber-950 text-white shadow-lg sticky top-0 z-40">
+  <div class="container mx-auto px-4 py-3 flex justify-between items-center gap-3">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <div class="bg-amber-600 p-2 rounded-lg shrink-0"><i class="fa-solid fa-wheat-awn text-xl"></i></div>
+      <div class="min-w-0">
+        <p class="text-lg font-bold tracking-wide leading-tight truncate" id="brand">Materias Primas IA</p>
+        <p class="text-[10px] text-amber-300">Comercializadora inteligente</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 sm:gap-3">
+      <div id="badge" class="hidden sm:flex items-center gap-2 bg-black/30 rounded-full px-3 py-1.5 text-xs"></div>
+      <button data-a="logout" class="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition" title="Cambiar rol"><i class="fa-solid fa-right-from-bracket mr-1"></i><span class="hidden sm:inline">Cambiar rol</span></button>
+      <button id="btn-cart" data-a="cart" aria-label="Abrir orden" class="relative bg-amber-700 hover:bg-amber-600 px-3 sm:px-4 py-2 rounded-full flex items-center gap-2 transition">
+        <i class="fa-solid fa-cart-shopping"></i><span class="hidden sm:inline">Orden</span>
+        <span id="cart-count" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
+      </button>
+    </div>
+  </div>
+  <nav id="staff-nav" class="is-hidden border-t border-amber-900/50 bg-amber-950/80" aria-label="Módulos">
+    <div id="nav-items" class="container mx-auto px-4 py-2 flex flex-wrap gap-2 text-sm"></div>
+  </nav>
+</header>
+
+<div id="toasts" class="fixed top-20 right-4 z-[60] space-y-2 max-w-sm" aria-live="polite"></div>
+
+<!-- TIENDA -->
+<div id="view-store">
+  <section id="hero" class="relative bg-amber-900 overflow-hidden" aria-label="Destacados">
+    <div id="slides" class="relative h-52 sm:h-64 md:h-72"></div>
+    <button data-a="slide" data-v="-1" aria-label="Anterior" class="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white w-9 h-9 rounded-full z-10"><i class="fa-solid fa-chevron-left"></i></button>
+    <button data-a="slide" data-v="1" aria-label="Siguiente" class="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white w-9 h-9 rounded-full z-10"><i class="fa-solid fa-chevron-right"></i></button>
+    <div id="dots" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10"></div>
+  </section>
+
+  <section class="bg-gradient-to-b from-amber-950 to-amber-900 text-white py-10 px-4">
+    <div class="container mx-auto max-w-5xl">
+      <div class="text-center mb-6">
+        <h2 class="text-2xl font-bold mb-1">Centro de Inteligencia Artificial</h2>
+        <p class="text-amber-200 text-sm">Calcula insumos de cualquier receta y compra solo lo necesario</p>
+      </div>
+      <div class="flex justify-center gap-2 mb-5" role="tablist">
+        <button data-a="tab" data-v="recetas" id="tab-recetas" role="tab" class="px-4 py-2 rounded-full text-sm font-semibold">Recetas y cantidades</button>
+        <button data-a="tab" data-v="rend" id="tab-rend" role="tab" class="px-4 py-2 rounded-full text-sm font-semibold">Rendimientos</button>
+      </div>
+      <div id="p-recetas" class="bg-amber-950/50 rounded-2xl p-5 border border-amber-800">
+        <p class="text-amber-200 text-sm mb-3">Escribe o dicta tu receta (pozole, mole, galletas, caldo). Calculamos cantidades, presentaciones y costo.</p>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <div class="relative flex-1">
+            <input id="ia-prompt" type="text" aria-label="Receta" placeholder="Ej: Pozole para 40 personas" class="w-full py-3 px-4 pr-12 rounded-xl text-gray-800 bg-white">
+            <button id="mic-ia" data-a="mic" data-v="ia-prompt|mic-ia" aria-label="Dictar" class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-amber-100 hover:bg-amber-200 text-amber-800"><i class="fa-solid fa-microphone"></i></button>
+          </div>
+          <button data-a="analyze" class="bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold px-6 py-3 rounded-xl"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Analizar</button>
+        </div>
+        <div id="ia-out" class="is-hidden mt-4 p-4 bg-black/30 rounded-xl border border-amber-700"></div>
+      </div>
+      <div id="p-rend" class="is-hidden bg-amber-950/50 rounded-2xl p-5 border border-amber-800">
+        <div class="grid sm:grid-cols-3 gap-4 items-end">
+          <label class="text-xs text-amber-300 font-semibold">Producto<select id="y-prod" class="w-full mt-1 py-2.5 px-3 rounded-lg text-gray-800 bg-white font-normal text-sm"></select></label>
+          <label class="text-xs text-amber-300 font-semibold">Cálculo<select id="y-type" data-c="ytype" class="w-full mt-1 py-2.5 px-3 rounded-lg text-gray-800 bg-white font-normal text-sm"><option value="porciones">Porciones con X kg</option><option value="kg">Kg para N porciones</option></select></label>
+          <label id="y-kg" class="text-xs text-amber-300 font-semibold">Kilogramos<input id="y-kgv" type="number" value="5" min="0.1" step="0.1" class="w-full mt-1 py-2.5 px-3 rounded-lg text-gray-800 bg-white font-normal"></label>
+          <label id="y-n" class="is-hidden text-xs text-amber-300 font-semibold">Porciones<input id="y-nv" type="number" value="200" min="1" class="w-full mt-1 py-2.5 px-3 rounded-lg text-gray-800 bg-white font-normal"></label>
+        </div>
+        <button data-a="calcY" class="mt-4 bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold px-6 py-2.5 rounded-xl"><i class="fa-solid fa-calculator mr-1"></i> Calcular</button>
+        <div id="y-out" class="is-hidden mt-4 p-4 bg-black/30 rounded-xl text-sm"></div>
+      </div>
+    </div>
+  </section>
+
+  <main class="container mx-auto px-4 py-10">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+      <h2 class="text-2xl font-bold">Catálogo de productos</h2>
+      <div class="relative sm:w-72"><i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+        <input id="search" type="search" aria-label="Buscar producto" placeholder="Buscar producto" class="w-full border rounded-full py-2 pl-9 pr-4 text-sm bg-white"></div>
+    </div>
+    <div id="cats" class="flex flex-wrap gap-2 mb-8"></div>
+    <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
+    <div id="no-results" class="is-hidden text-center py-16 text-gray-500"><i class="fa-solid fa-box-open text-4xl mb-3 text-gray-300"></i><p class="font-medium">Sin resultados. Prueba con otra palabra o categoría.</p></div>
+  </main>
+  <footer class="bg-amber-950 text-amber-200 py-10 px-4 text-center text-sm">
+    <p class="text-amber-300/80">Insumos + IA · Pedidos y preórdenes 24/7</p>
+    <p class="text-xs text-amber-400/60 mt-4">© 2026 Materias Primas IA</p>
+  </footer>
+</div>
+
+<!-- PANEL STAFF -->
+<div id="view-staff" class="is-hidden min-h-screen bg-stone-100">
+  <div class="container mx-auto px-4 py-6">
+    <div id="banner" class="mb-6 rounded-2xl p-4 border flex flex-wrap items-start gap-3"></div>
+    <section id="staff-main"></section>
+  </div>
+</div>
+
+<!-- CARRITO -->
+<aside id="cart" inert role="dialog" aria-label="Orden o preorden" class="fixed inset-y-0 right-0 w-full sm:w-[420px] bg-white shadow-2xl translate-x-full transition-transform duration-300 z-50 flex flex-col">
+  <div class="bg-amber-950 text-white p-4 flex justify-between items-center">
+    <h3 class="font-bold text-lg"><i class="fa-solid fa-file-invoice mr-2"></i>Orden / Preorden</h3>
+    <button data-a="cart" aria-label="Cerrar" class="text-2xl leading-none hover:text-amber-300">&times;</button>
+  </div>
+  <div id="cart-items" class="scroll p-4 flex-1 overflow-y-auto space-y-3"></div>
+  <div id="recs" class="is-hidden px-4 pb-3">
+    <p class="text-xs font-bold text-amber-800 mb-2"><i class="fa-solid fa-lightbulb"></i> Te puede servir</p>
+    <div id="recs-list" class="space-y-2"></div>
+  </div>
+  <div class="px-4 py-3 border-t bg-amber-50/50">
+    <label class="flex items-center gap-2 text-sm font-semibold cursor-pointer"><input type="checkbox" id="is-pre" data-c="pre" class="w-4 h-4 accent-amber-700"> Programar como preorden</label>
+    <div id="pre-panel" class="is-hidden mt-3 space-y-2">
+      <label class="block text-xs font-bold text-amber-800">Fecha de entrega (mínimo 2 días)<input type="date" id="pre-date" class="w-full mt-1 border border-amber-200 rounded-lg p-2.5 text-sm font-normal"></label>
+      <input type="text" id="pre-notes" maxlength="200" aria-label="Notas" placeholder="Notas (opcional)" class="w-full border rounded-lg p-2 text-sm">
+    </div>
+  </div>
+  <div class="p-4 border-t bg-stone-50 space-y-2">
+    <div class="flex justify-between items-center"><span class="font-semibold text-gray-600">Total</span><span id="cart-total" class="text-xl font-bold text-amber-900"></span></div>
+    <button data-a="quote" class="w-full bg-indigo-700 hover:bg-indigo-800 text-white font-semibold py-2.5 rounded-xl text-sm">Generar cotización</button>
+    <button data-a="wa" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl text-sm"><i class="fa-brands fa-whatsapp mr-1"></i> Enviar pedido por WhatsApp</button>
+  </div>
+</aside>
+<div id="overlay" data-a="cart" class="is-hidden fixed inset-0 bg-black/40 z-40"></div>
+
+<!-- CHAT + FLOTANTES -->
+<div id="floats">
+  <section id="chat" class="is-hidden fixed bottom-24 right-4 w-[calc(100vw-2rem)] sm:w-[400px] h-[520px] max-h-[75vh] bg-white rounded-2xl shadow-2xl z-50 flex flex-col border" aria-label="Asistente de recetas">
+    <div class="bg-amber-950 text-white p-3 rounded-t-2xl flex justify-between items-center">
+      <div class="flex items-center gap-2"><div class="w-8 h-8 bg-amber-600 rounded-full flex items-center justify-center"><i class="fa-solid fa-robot"></i></div>
+        <div><p class="font-bold text-sm">Asistente de recetas</p><p class="text-[10px] text-amber-300">Pozole, galletas, caldos y más</p></div></div>
+      <button data-a="chat" aria-label="Cerrar chat" class="text-xl">&times;</button>
+    </div>
+    <div class="px-3 py-2 bg-amber-50 border-b flex flex-wrap gap-1.5">
+      <button data-a="sug" data-v="Pozole para 30 personas" class="text-[11px] bg-white border border-amber-200 px-2.5 py-1 rounded-full">Pozole 30</button>
+      <button data-a="sug" data-v="Galletas 100 piezas" class="text-[11px] bg-white border border-amber-200 px-2.5 py-1 rounded-full">Galletas x100</button>
+      <button data-a="sug" data-v="Mole para 25 personas" class="text-[11px] bg-white border border-amber-200 px-2.5 py-1 rounded-full">Mole 25</button>
+      <button data-a="sug" data-v="ayuda" class="text-[11px] bg-white border border-amber-200 px-2.5 py-1 rounded-full">Ayuda</button>
+      <button data-a="sug" data-v="mi carrito" class="text-[11px] bg-white border border-amber-200 px-2.5 py-1 rounded-full">Mi carrito</button>
+    </div>
+    <div id="chat-msgs" class="scroll flex-1 overflow-y-auto p-3 space-y-3 bg-stone-50"></div>
+    <div class="p-3 border-t flex gap-2">
+      <input id="chat-input" type="text" aria-label="Mensaje" placeholder="Escribe o dicta" class="flex-1 border rounded-full px-4 py-2 text-sm">
+      <button id="mic-chat" data-a="mic" data-v="chat-input|mic-chat" aria-label="Dictar" class="w-10 h-10 rounded-full bg-amber-100 text-amber-800"><i class="fa-solid fa-microphone"></i></button>
+      <button data-a="send" aria-label="Enviar" class="bg-amber-700 text-white w-10 h-10 rounded-full"><i class="fa-solid fa-paper-plane text-sm"></i></button>
+    </div>
+  </section>
+  <button data-a="chat" aria-label="Abrir asistente" class="fixed bottom-6 right-20 bg-amber-700 hover:bg-amber-800 text-white p-3.5 rounded-full shadow-xl z-30"><i class="fa-solid fa-comments text-xl"></i></button>
+  <a href="https://wa.me/5215500000000" target="_blank" rel="noopener" aria-label="WhatsApp" class="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white p-3.5 rounded-full shadow-xl z-30"><i class="fa-brands fa-whatsapp text-2xl"></i></a>
+</div>
+
+<div id="modal" class="is-hidden fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Cotización">
+  <div class="bg-white rounded-2xl max-w-lg w-full p-6 max-h-[80vh] overflow-y-auto">
+    <div class="flex justify-between mb-4"><h3 class="font-bold text-lg">Cotización</h3><button data-a="closeQuote" aria-label="Cerrar" class="text-2xl text-gray-400">&times;</button></div>
+    <pre id="quote-text" class="text-sm whitespace-pre-wrap font-sans bg-stone-50 p-4 rounded-xl border"></pre>
+    <div class="mt-4 flex gap-2">
+      <button data-a="copy" class="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-semibold">Copiar</button>
+      <button data-a="waQuote" class="flex-1 bg-green-600 text-white py-2.5 rounded-xl text-sm font-semibold">WhatsApp</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+'use strict';
+/* ============ UTILIDADES ============ */
+const $ = id => document.getElementById(id);
+const hide = (id, c = true) => $(id).classList.toggle('is-hidden', c);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const money = n => new Intl.NumberFormat('es-MX', {style:'currency', currency:'MXN'}).format(n);
+const fmtG = g => g >= 1000 ? (g / 1000).toFixed(2) + ' kg' : Math.round(g) + ' g';
+const debounce = (f, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; };
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('mpia:' + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('mpia:' + k, JSON.stringify(v)); } catch {} }
+};
+const waUrl = () => 'https://wa.me/' + S.cfg.wa;
+
+/* ============ DATOS ============ */
+const ALL = ['pedidos','capturar','editar','surtir','inventario','productos','usuarios','reportes','config','borrar','seguridad','tienda'];
+const ROLES = {
+  admin:{nivel:1,tag:'1',nombre:'Admin Jefe',color:'red',icon:'fa-crown',perms:ALL,
+    desc:'Dueño. Control total del sistema, usuarios y configuración.',pros:['Todo el panel admin','Usuarios y permisos','Reportes y auditoría'],cons:[]},
+  supervisor:{nivel:2,tag:'2',nombre:'Supervisor',color:'indigo',icon:'fa-user-tie',perms:ALL.filter(p => !['seguridad','borrar'].includes(p)),
+    desc:'Dirige operación, pedidos, personal 3A/3B y reportes.',pros:['Pedidos y clientes','Productos y stock'],cons:['No gestiona al Admin Jefe']},
+  operador:{nivel:3,tag:'3A',nombre:'Operador de Almacén',color:'emerald',icon:'fa-boxes-stacked',perms:['pedidos','surtir','inventario'],
+    desc:'Inventario: entradas, salidas, mermas y surtido.',pros:['Stock y movimientos','Surtir pedidos'],cons:['No cambia precios ni usuarios']},
+  capturista:{nivel:3,tag:'3B',nombre:'Capturista',color:'sky',icon:'fa-keyboard',perms:['pedidos','capturar','editar','tienda'],
+    desc:'Captura pedidos y da seguimiento básico.',pros:['Capturar y confirmar pedidos','Ver la tienda'],cons:['No toca inventario']},
+  cliente:{nivel:4,tag:'4',nombre:'Cliente',color:'amber',icon:'fa-store',perms:['tienda'],
+    desc:'Compra en la tienda, usa la IA y arma pedidos y preórdenes.',pros:['Catálogo, carrito e IA','Preórdenes con fecha'],cons:['Sin panel interno']}
+};
+const PERM_LABEL = {pedidos:'Ver pedidos',capturar:'Capturar pedidos',editar:'Editar pedidos',surtir:'Surtir y cambiar estado',inventario:'Inventario',productos:'Productos y precios',usuarios:'Usuarios',reportes:'Reportes',config:'Configuración',borrar:'Eliminar registros',tienda:'Ver tienda',seguridad:'Permisos y auditoría'};
+const ROLE_OV = store.get('roles', {}); // permisos personalizados por el Admin Jefe
+for (const k in ROLE_OV) if (k !== 'admin' && ROLES[k]) ROLES[k].perms = ROLE_OV[k];
+const CATS = {especias:'Especias',chiles:'Chiles secos',reposteria:'Repostería',harinas:'Harinas',aceites:'Aceites'};
+// o: [etiqueta, gramos/ml, precio]  ·  s: stock  ·  y: porciones por kg
+const DEFAULT_PRODUCTS = [
+  {id:1,n:'Cúrcuma en Polvo',c:'especias',d:'Alta pureza.',i:'fa-jar',k:'amber',s:45,o:[['100 g',100,25],['500 g',500,110],['1 kg',1000,200]]},
+  {id:2,n:'Chile Guajillo',c:'chiles',d:'Entero y limpio.',i:'fa-pepper-hot',k:'red',s:12,y:90,o:[['250 g',250,40],['1 kg',1000,140]]},
+  {id:3,n:'Cocoa Alcalinizada',c:'reposteria',d:'Repostería fina.',i:'fa-cookie',k:'amber',s:8,y:40,o:[['500 g',500,80],['1 kg',1000,150]]},
+  {id:4,n:'Canela Ceylán',c:'especias',d:'Premium.',i:'fa-leaf',k:'orange',s:30,o:[['100 g',100,45],['250 g',250,100]]},
+  {id:5,n:'Chile Ancho',c:'chiles',d:'Suave y sabroso.',i:'fa-pepper-hot',k:'red',s:5,o:[['250 g',250,50],['1 kg',1000,165]]},
+  {id:6,n:'Harina de Almendra',c:'harinas',d:'Sin gluten.',i:'fa-bread-slice',k:'yellow',s:22,y:33,o:[['500 g',500,120],['1 kg',1000,220]]},
+  {id:7,n:'Aceite de Oliva E.V.',c:'aceites',d:'Extracción en frío.',i:'fa-bottle-droplet',k:'green',s:18,o:[['500 ml',500,95],['1 L',1000,175]]},
+  {id:8,n:'Chocolate Cobertura 70%',c:'reposteria',d:'Temperado.',i:'fa-cookie-bite',k:'stone',s:9,y:45,o:[['500 g',500,140],['1 kg',1000,260]]}
+];
+// ing: [idProducto, kg por cada 10 porciones]
+const RECIPES = {
+  mole:{n:'Mole Poblano',kw:['mole'],u:'personas',ing:[[2,.4],[5,.25],[1,.04],[4,.03]]},
+  pozole:{n:'Pozole Rojo',kw:['pozole','posole'],u:'personas',ing:[[2,.3],[5,.15]]},
+  galletas:{n:'Galletas',kw:['galleta'],u:'piezas',ing:[[6,.3],[3,.05],[8,.1]]},
+  caldo:{n:'Caldo',kw:['caldo','sopa','consome'],u:'personas',ing:[[2,.1],[1,.02]]}
+};
+const CROSS = [[[2,5],1],[[3,8],6]]; // si hay [A] y falta B, sugerir B
+const SLIDES = [
+  {bg:'from-amber-950 via-amber-900 to-amber-800',tag:'Potenciado con IA',t:'Tu proveedor inteligente de materias primas',s:'Pozole, galletas, caldos, moles… el asistente calcula cualquier receta.',b:'Hablar con el asistente',a:'chat'},
+  {bg:'from-red-950 via-red-900 to-amber-900',t:'Preorden inteligente',s:'Agenda tu pedido con fecha de entrega.',b:'Crear preorden',a:'cart'},
+  {bg:'from-stone-900 via-amber-950 to-amber-900',t:'Pide por voz o texto',s:'Recetas, cálculos, pedido o preorden.',b:'Abrir asistente',a:'chat'}
+];
+const SEED_ORDERS = [
+  {folio:'PED-1042',cliente:'Taquería El Fogón',tipo:'Pedido',total:1850,estado:'Pendiente'},
+  {folio:'PRE-210',cliente:'Panadería La Espiga',tipo:'Preorden',total:3200,estado:'Confirmado'},
+  {folio:'PED-1041',cliente:'Rest. Doña Lupita',tipo:'Pedido',total:940,estado:'En preparación'},
+  {folio:'PED-1040',cliente:'Cocina Industrial MX',tipo:'Pedido',total:4100,estado:'Enviado'}
+];
+const SEED_USERS = [
+  {n:'Carlos Dueño',rol:'admin',on:true},{n:'María Supervisor',rol:'supervisor',on:true},
+  {n:'Luis Almacén',rol:'operador',on:true},{n:'Ana Captura',rol:'capturista',on:true},{n:'Cliente Demo',rol:'cliente',on:true}
+];
+// estado → [texto del botón, siguiente estado, permiso requerido]
+const STEPS = {'Pendiente':['Confirmar','Confirmado','capturar'],'Confirmado':['A preparación','En preparación','surtir'],'En preparación':['Marcar enviado','Enviado','surtir']};
+const ESTADO_C = {'Pendiente':'bg-yellow-100 text-yellow-800','Confirmado':'bg-sky-100 text-sky-800','En preparación':'bg-violet-100 text-violet-800','Enviado':'bg-green-100 text-green-800'};
+
+/* ============ ESTADO ============ */
+const S = {role:store.get('role', null), view:'store', panel:null, cat:'todos', cart:store.get('cart', []),
+  orders:store.get('orders', SEED_ORDERS), users:store.get('users', SEED_USERS), plan:null, slide:0,
+  cfg:store.get('cfg', {empresa:'Materias Primas IA', wa:'5215500000000', dias:2}), log:store.get('log', [])};
+const PRODUCTS = store.get('products', DEFAULT_PRODUCTS);
+const save = () => { store.set('cart', S.cart); store.set('orders', S.orders); store.set('users', S.users); store.set('products', PRODUCTS);
+  store.set('cfg', S.cfg); store.set('log', S.log); store.set('roles', Object.fromEntries(Object.entries(ROLES).map(([k, r]) => [k, r.perms]))); };
+const prod = id => PRODUCTS.find(p => p.id === id);
+const can = p => !!S.role && ROLES[S.role].perms.includes(p);
+const isStaff = () => ROLES[S.role].perms.some(p => p !== 'tienda');
+const need = p => can(p) || (toast('No tienes permiso para esta acción', 'warning'), false);
+
+function toast(msg, type = 'info') {
+  const c = {info:'bg-amber-800', success:'bg-green-700', warning:'bg-orange-600'}[type];
+  const d = document.createElement('div');
+  d.className = `fade-in ${c} text-white text-sm px-4 py-3 rounded-xl shadow-lg`;
+  d.textContent = msg; $('toasts').append(d); setTimeout(() => d.remove(), 3500);
+}
+
+/* ============ ROLES Y VISTAS ============ */
+function renderLogin() {
+  $('login-cards').innerHTML = Object.entries(ROLES).map(([id, r]) => `
+    <button data-a="login" data-v="${id}" class="bg-white rounded-2xl p-5 text-left border-2 border-transparent hover:border-${r.color}-500 hover:-translate-y-1 hover:shadow-xl transition ${id === 'cliente' ? 'sm:col-span-2 lg:col-span-1' : ''}">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-12 h-12 rounded-xl bg-${r.color}-100 text-${r.color}-700 flex items-center justify-center text-xl"><i class="fa-solid ${r.icon}"></i></div>
+        <div><span class="text-xs font-bold text-${r.color}-600">Nivel ${r.tag}</span><p class="font-bold leading-tight">${r.nombre}</p></div>
+      </div>
+      <p class="text-xs text-gray-500 mb-3">${r.desc}</p>
+      <ul class="text-[11px] text-gray-600 space-y-1">${r.pros.map(x => `<li>✅ ${x}</li>`).join('')}${r.cons.map(x => `<li>❌ ${x}</li>`).join('')}</ul>
+    </button>`).join('');
+}
+function enter(id) {
+  S.role = id; store.set('role', id);
+  const r = ROLES[id];
+  hide('login'); hide('app', false);
+  $('badge').innerHTML = `<i class="fa-solid ${r.icon} text-${r.color}-300"></i><span class="font-semibold">N${r.tag} · ${r.nombre}</span>`;
+  hide('staff-nav', !isStaff());
+  setView(isStaff() ? 'staff' : 'store');
+  renderCart();
+}
+function setView(v) {
+  S.view = v;
+  hide('view-store', v !== 'store'); hide('view-staff', v !== 'staff');
+  hide('btn-cart', v !== 'store'); hide('floats', v !== 'store');
+  if (v !== 'store') toggleCart(false);
+  if (isStaff()) renderStaff();
+  window.scrollTo(0, 0);
+}
+
+/* ============ CATÁLOGO ============ */
+function renderCats() {
+  $('cats').innerHTML = [['todos','Todos'], ...Object.entries(CATS)].map(([k, l]) =>
+    `<button data-a="cat" data-v="${k}" class="px-4 py-2 rounded-full text-sm font-semibold border ${S.cat === k ? 'bg-amber-800 text-white border-amber-800' : 'bg-white text-gray-700 border-gray-200 hover:border-amber-400'}">${l}</button>`).join('');
+}
+function renderCatalog() {
+  const q = norm($('search').value.trim());
+  const list = PRODUCTS.filter(p => (S.cat === 'todos' || p.c === S.cat) && (!q || norm(`${p.n} ${p.d} ${CATS[p.c]}`).includes(q)));
+  $('grid').innerHTML = list.map(p => `
+    <article class="bg-white rounded-2xl shadow-sm border p-4 flex flex-col justify-between hover:shadow-md transition fade-in">
+      <div>
+        <div class="bg-${p.k}-50 h-28 rounded-xl flex items-center justify-center mb-3"><i class="fa-solid ${p.i} text-4xl text-${p.k}-600"></i></div>
+        <div class="flex items-center justify-between"><span class="text-[11px] bg-${p.k}-100 text-${p.k}-800 font-bold px-2.5 py-1 rounded-full">${CATS[p.c]}</span>
+          ${p.s === 0 ? '<span class="text-[11px] text-red-600 font-semibold">Agotado</span>' : p.s < 10 ? '<span class="text-[11px] text-orange-600 font-semibold">Pocas piezas</span>' : ''}</div>
+        <h3 class="font-bold mt-2">${p.n}</h3>
+        <p class="text-xs text-gray-500 mb-2">${p.d}</p>
+        <select id="sel-${p.id}" aria-label="Presentación de ${p.n}" class="w-full border rounded-lg p-2 text-sm mb-3 bg-stone-50">${p.o.map((o, i) => `<option value="${i}">${o[0]} — ${money(o[2])}</option>`).join('')}</select>
+      </div>
+      <button data-a="add" data-v="${p.id}" ${p.s === 0 ? 'disabled' : ''} class="w-full bg-amber-800 hover:bg-amber-900 disabled:bg-gray-300 text-white font-semibold py-2.5 rounded-xl text-sm"><i class="fa-solid fa-plus mr-1"></i>Agregar</button>
+    </article>`).join('');
+  hide('no-results', list.length > 0);
+}
+
+/* ============ CARRITO ============ */
+const cartTotal = () => S.cart.reduce((a, l) => a + prod(l.id).o[l.opt][2] * l.q, 0);
+function addToCart(id, opt, q = 1) {
+  const l = S.cart.find(x => x.id === id && x.opt === opt);
+  l ? l.q += q : S.cart.push({id, opt, q});
+  save(); renderCart();
+}
+function renderCart() {
+  $('cart-count').textContent = S.cart.reduce((a, l) => a + l.q, 0);
+  $('cart-total').textContent = money(cartTotal());
+  $('cart-items').innerHTML = S.cart.length ? S.cart.map((l, i) => {
+    const p = prod(l.id), o = p.o[l.opt];
+    return `<div class="flex gap-3 border-b pb-3"><div class="flex-1"><p class="font-semibold text-sm">${p.n}</p><p class="text-xs text-gray-500">${o[0]} · ${money(o[2])}</p>
+      <div class="flex items-center gap-2 mt-1"><button data-a="qty" data-v="${i}" data-d="-1" aria-label="Quitar uno" class="w-6 h-6 rounded-full bg-gray-100 text-xs">−</button><span class="text-sm w-5 text-center">${l.q}</span><button data-a="qty" data-v="${i}" data-d="1" aria-label="Agregar uno" class="w-6 h-6 rounded-full bg-gray-100 text-xs">+</button></div></div>
+      <div class="text-right"><p class="font-bold text-amber-900 text-sm">${money(o[2] * l.q)}</p><button data-a="del" data-v="${i}" aria-label="Eliminar" class="text-red-400 text-xs mt-1"><i class="fa-solid fa-trash-can"></i></button></div></div>`;
+  }).join('') : '<p class="text-gray-400 text-center text-sm py-12">Tu orden está vacía. Agrega productos del catálogo o usa la IA.</p>';
+  const ids = S.cart.map(l => l.id);
+  const recs = CROSS.filter(([a, b]) => a.some(x => ids.includes(x)) && !ids.includes(b)).map(([, b]) => prod(b));
+  hide('recs', !recs.length);
+  $('recs-list').innerHTML = recs.map(p => `<div class="flex justify-between items-center bg-amber-50 rounded-lg p-2 text-xs"><span>${p.n}</span><button data-a="addRec" data-v="${p.id}" class="bg-amber-700 text-white px-2 py-1 rounded">Agregar</button></div>`).join('');
+}
+function toggleCart(open = $('cart').inert) {
+  const c = $('cart'); c.inert = !open;
+  c.classList.toggle('translate-x-full', !open); hide('overlay', !open);
+  if (open) renderCart();
+}
+function orderText(title) {
+  const pre = $('is-pre').checked, notes = $('pre-notes').value.trim();
+  const items = S.cart.map((l, i) => { const p = prod(l.id), o = p.o[l.opt]; return `${i + 1}. ${p.n} (${o[0]}) x${l.q} — ${money(o[2] * l.q)}`; }).join('\n');
+  return `${title}\n${pre ? `\n★ PREORDEN · Entrega: ${$('pre-date').value}${notes ? '\nNotas: ' + notes : ''}\n` : ''}\n${items}\n\nTOTAL: ${money(cartTotal())}`;
+}
+function validOrder() {
+  if (!S.cart.length) { toast('Agrega al menos un producto', 'warning'); return false; }
+  if ($('is-pre').checked && !$('pre-date').value) { toast('Elige la fecha de entrega de la preorden', 'warning'); return false; }
+  return true;
+}
+const nextFolio = pre => `${pre}-${Math.max(0, ...S.orders.filter(o => o.folio.startsWith(pre)).map(o => +o.folio.split('-')[1])) + 1}`;
+
+/* ============ IA: RECETAS Y RENDIMIENTOS ============ */
+function bestPack(p, g) { // presentación(es) más barata(s) que cubren los gramos
+  let b = null;
+  p.o.forEach(([, og, pr], i) => { const n = Math.ceil(g / og), cost = n * pr; if (!b || cost < b.cost || (cost === b.cost && n < b.n)) b = {i, n, cost}; });
+  return b;
+}
+function makePlan(text) {
+  const t = norm(text), n = +(t.match(/\d+/) || [10])[0];
+  let best = null, sc = 0;
+  for (const r of Object.values(RECIPES)) { const s = r.kw.reduce((a, k) => a + (t.includes(k) ? k.length : 0), 0); if (s > sc) { sc = s; best = r; } }
+  if (!best) return null;
+  const lines = best.ing.map(([id, kg]) => { const p = prod(id), need = kg * (n / 10) * 1000; return {p, need, pack:bestPack(p, need)}; });
+  return {r:best, n, lines, total:lines.reduce((a, l) => a + l.pack.cost, 0)};
+}
+function planHTML(pl, btnCls) {
+  return `<p class="font-bold">${pl.r.n} · ${pl.n} ${pl.r.u}</p>
+    <ul class="my-2 space-y-1 text-sm">${pl.lines.map(l => `<li class="flex justify-between gap-2"><span>${l.p.n}</span><span class="text-right">${fmtG(l.need)} <small class="opacity-70">(${l.pack.n}× ${l.p.o[l.pack.i][0]})</small></span></li>`).join('')}</ul>
+    <p class="text-xs">Inversión estimada: <b>${money(pl.total)}</b></p>
+    <button data-a="addPlan" class="${btnCls} mt-2 text-xs font-bold px-3 py-1.5 rounded-lg">+ Agregar al carrito</button>`;
+}
+function addPlan() {
+  if (!S.plan) return;
+  S.plan.lines.forEach(l => addToCart(l.p.id, l.pack.i, l.pack.n));
+  toggleCart(true); toast('Insumos agregados a tu orden', 'success');
+}
+function analyze() {
+  const txt = $('ia-prompt').value.trim(); if (!txt) return toast('Escribe una receta, por ejemplo: Pozole para 40', 'warning');
+  S.plan = makePlan(txt); hide('ia-out', false);
+  $('ia-out').innerHTML = S.plan ? planHTML(S.plan, 'bg-amber-400 text-amber-950') : '<p class="text-amber-100 text-sm">No reconocí esa receta. Prueba: pozole, mole, galletas o caldo.</p>';
+}
+function calcYield() {
+  const p = prod(+$('y-prod').value), t = $('y-type').value, out = $('y-out'); hide('y-out', false);
+  out.innerHTML = t === 'porciones'
+    ? `Con <b>${+$('y-kgv').value || 1} kg</b> de ${p.n} salen ≈ <b>${Math.round(p.y * (+$('y-kgv').value || 1))}</b> porciones.`
+    : `Para <b>${+$('y-nv').value || 100}</b> porciones necesitas ≈ <b>${((+$('y-nv').value || 100) / p.y).toFixed(2)} kg</b> de ${p.n}.`;
+}
+function showTab(t) {
+  hide('p-recetas', t !== 'recetas'); hide('p-rend', t !== 'rend');
+  [['recetas', 'tab-recetas'], ['rend', 'tab-rend']].forEach(([k, id]) => {
+    $(id).className = `px-4 py-2 rounded-full text-sm font-semibold ${k === t ? 'bg-amber-500 text-amber-950' : 'bg-amber-800/60 text-amber-200 hover:bg-amber-700'}`;
+    $(id).setAttribute('aria-selected', k === t);
+  });
+}
+
+/* ============ CHAT Y VOZ ============ */
+function bubble(who, content, isHtml) {
+  const c = $('chat-msgs'), row = document.createElement('div');
+  row.className = 'fade-in flex gap-2 ' + (who === 'user' ? 'justify-end' : '');
+  const b = document.createElement('div');
+  b.className = who === 'user' ? 'bg-amber-900 text-white rounded-2xl rounded-br-sm px-3 py-2 text-sm max-w-[85%]' : 'bg-white border rounded-2xl rounded-bl-sm px-3 py-2 text-sm max-w-[90%]';
+  isHtml ? b.innerHTML = content : b.textContent = content; // el texto del usuario nunca se inserta como HTML
+  row.append(b); c.append(row); c.scrollTop = c.scrollHeight;
+}
+function toggleChat() {
+  hide('chat', !$('chat').classList.contains('is-hidden'));
+  if (!$('chat').classList.contains('is-hidden') && !$('chat-msgs').children.length) bubble('bot', '¡Hola! Calculo recetas, consulto precios y stock y armo tu orden. Escribe <i>«ayuda»</i> para ver todo.', true);
+}
+function chatReply(txt) {
+  const t = norm(txt), has = re => re.test(t), n = Math.max(1, +(t.match(/\d+/) || [1])[0]);
+  if (has(/\b(hola|buenas|ayuda|que puedes)\b/)) return `Puedo ayudarte con:<ul class="list-disc ml-4 mt-1 text-xs space-y-0.5"><li>Recetas: «Pozole para 30», «Galletas 100 piezas»</li><li>Precio y stock: «precio de la canela»</li><li>Armar tu orden: «agrega 2 chile ancho»</li><li>Tu carrito y total, o «vaciar carrito»</li>${can('inventario') ? '<li>«Stock bajo»</li>' : ''}${can('pedidos') ? '<li>«Pedidos pendientes»</li>' : ''}${can('reportes') ? '<li>«Ventas»</li>' : ''}</ul>`;
+  const pl = makePlan(txt); if (pl) { S.plan = pl; return planHTML(pl, 'bg-amber-700 text-white'); }
+  if (has(/(vaciar|limpiar).*(carrito|orden)/)) { S.cart = []; save(); renderCart(); return 'Listo, vacié tu orden.'; }
+  if (has(/carrito|mi orden|cuanto llevo|mi total/)) return S.cart.length ? `Llevas ${S.cart.reduce((a, l) => a + l.q, 0)} artículos por <b>${money(cartTotal())}</b>.<br><button data-a="cart" class="mt-2 bg-amber-700 text-white text-xs px-3 py-1.5 rounded-lg">Abrir orden</button>` : 'Tu orden está vacía. Dime qué necesitas y lo agrego.';
+  const hit = PRODUCTS.map(p => [p, norm(p.n).split(' ').filter(w => w.length > 3 && t.includes(w)).reduce((a, w) => a + w.length, 0)]).filter(x => x[1]).sort((a, b) => b[1] - a[1])[0];
+  if (hit) {
+    const p = hit[0];
+    if (has(/agrega|anade|quiero|pon |compra/)) { if (!p.s) return `${p.n} está agotado por ahora.`; addToCart(p.id, 0, n); return `Agregué ${n}× ${p.n} (${p.o[0][0]}). Total: <b>${money(cartTotal())}</b>.`; }
+    return `<b>${p.n}</b> · ${p.s ? p.s + ' en stock' : 'agotado'}<div class="mt-2 space-y-1">${p.o.map((o, i) => `<div class="flex justify-between items-center gap-2 text-xs"><span>${o[0]} — ${money(o[2])}</span>${p.s ? `<button data-a="chatAdd" data-v="${p.id}|${i}" class="bg-amber-700 text-white px-2 py-1 rounded">Agregar</button>` : ''}</div>`).join('')}</div>`;
+  }
+  if (can('inventario') && has(/stock|bajo|agotad|inventario/)) { const low = PRODUCTS.filter(p => p.s < 10); return low.length ? `Stock bajo:<ul class="list-disc ml-4 text-xs">${low.map(p => `<li>${p.n}: ${p.s} u.</li>`).join('')}</ul>` : 'Todo el inventario está sobre el mínimo.'; }
+  if (can('pedidos') && has(/pedido|pendiente|preorden/)) return Object.keys(ESTADO_C).map(e => `${e}: <b>${S.orders.filter(o => o.estado === e).length}</b>`).join(' · ');
+  if (can('reportes') && has(/venta|reporte|ticket/)) return `Ventas registradas: <b>${money(S.orders.reduce((a, o) => a + o.total, 0))}</b> en ${S.orders.length} pedidos.`;
+  return 'No te entendí. Prueba «Pozole para 30», «precio de la canela» o escribe «ayuda».';
+}
+function sendChat(text) {
+  const input = $('chat-input'), txt = (text ?? input.value).trim(); if (!txt) return;
+  bubble('user', txt); input.value = '';
+  setTimeout(() => bubble('bot', chatReply(txt), true), 350);
+}
+let rec = null, micOn = null;
+function stopMic() { try { rec && rec.stop(); } catch {} if (micOn) { $(micOn).classList.remove('listening'); micOn = null; } }
+function mic(inputId, btnId) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return toast('Tu navegador no soporta dictado. Usa Chrome o Edge.', 'warning');
+  const same = micOn === btnId; stopMic(); if (same) return;
+  const r = rec = new SR(); r.lang = 'es-MX';
+  r.onresult = e => { $(inputId).value = e.results[0][0].transcript; if (inputId === 'chat-input') sendChat(); };
+  r.onend = r.onerror = () => { if (rec === r) stopMic(); };
+  micOn = btnId; $(btnId).classList.add('listening');
+  try { r.start(); } catch { stopMic(); }
+}
+
+/* ============ CARRUSEL ============ */
+let timer;
+function renderSlides() {
+  $('slides').innerHTML = SLIDES.map((s, i) => `<div class="slide ${i ? 'off' : ''} absolute inset-0 flex items-center justify-center bg-gradient-to-r ${s.bg}">
+    <div class="text-center text-white px-14 max-w-2xl">${s.tag ? `<span class="inline-block bg-amber-600/30 text-amber-200 text-xs font-semibold px-3 py-1 rounded-full mb-3"><i class="fa-solid fa-robot mr-1"></i>${s.tag}</span>` : ''}
+    <h2 class="text-2xl sm:text-3xl font-bold mb-2">${s.t}</h2><p class="text-amber-100 text-sm mb-4">${s.s}</p>
+    <button data-a="${s.a}" class="bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold px-5 py-2 rounded-full text-sm">${s.b}</button></div></div>`).join('');
+  $('dots').innerHTML = SLIDES.map((_, i) => `<button data-a="go" data-v="${i}" aria-label="Ir a la diapositiva ${i + 1}" class="w-2.5 h-2.5 rounded-full"></button>`).join('');
+}
+function showSlide(n) {
+  S.slide = (n + SLIDES.length) % SLIDES.length;
+  [...$('slides').children].forEach((s, i) => { s.classList.toggle('off', i !== S.slide); s.inert = i !== S.slide; });
+  [...$('dots').children].forEach((d, i) => d.className = `w-2.5 h-2.5 rounded-full ${i === S.slide ? 'bg-white' : 'bg-white/40'}`);
+}
+const play = () => { clearInterval(timer); timer = setInterval(() => showSlide(S.slide + 1), 6000); };
+
+/* ============ PANEL STAFF ============ */
+const table = (heads, rows) => `<div class="bg-white rounded-2xl border overflow-x-auto"><table class="w-full text-sm"><thead class="bg-stone-50 text-gray-600 text-left"><tr>${heads.map(h => `<th class="px-4 py-3 font-semibold">${h}</th>`).join('')}</tr></thead><tbody class="divide-y divide-gray-100">${rows.map(r => `<tr>${r.map(c => `<td class="px-4 py-3">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+const kpi = (l, v, c = '') => `<div class="bg-white rounded-xl border p-4"><p class="text-xs text-gray-500">${l}</p><p class="text-2xl font-bold ${c}">${v}</p></div>`;
+const head = (i, c, t) => `<h2 class="text-xl font-bold mb-4"><i class="fa-solid ${i} ${c} mr-2"></i>${t}</h2>`;
+const abtn = (a, label, cls, attrs = '') => `<button data-a="${a}" ${attrs} class="text-xs px-2 py-1 rounded mr-1 ${cls}">${label}</button>`;
+
+const clean = x => x.replace(/[<>&"'`]/g, '').trim();
+const audit = m => { S.log.unshift({t:Date.now(), u:ROLES[S.role].nombre, m}); S.log.length = Math.min(S.log.length, 100); save(); };
+const applyCfg = () => { $('brand').textContent = S.cfg.empresa; document.title = S.cfg.empresa; document.querySelector('#floats a').href = waUrl(); };
+const fillYield = () => { $('y-prod').innerHTML = PRODUCTS.filter(p => p.y).map(p => `<option value="${p.id}">${p.n}</option>`).join(''); };
+const refresh = () => { save(); renderCatalog(); renderCart(); fillYield(); if (isStaff()) renderStaff(); };
+const canEditOrder = o => can('editar') && (can('surtir') || o.estado === 'Pendiente');
+const manages = u => can('usuarios') && ROLES[u.rol].nivel > ROLES[S.role].nivel; // solo niveles inferiores
+const inp = (c, v, attrs = '', cls = '') => `<input data-c="${c}" value="${esc(v)}" ${attrs} class="border rounded-lg px-2 py-1 text-sm disabled:bg-gray-100 ${cls}">`;
+function vPedidos() {
+  const form = can('capturar') ? `<div class="flex flex-wrap gap-2 mb-4 bg-white p-3 rounded-xl border">
+    <input id="o-cli" aria-label="Cliente" maxlength="60" placeholder="Cliente" class="flex-1 min-w-40 border rounded-lg px-3 py-2 text-sm">
+    <input id="o-tot" aria-label="Total" type="number" min="1" placeholder="Total MXN" class="w-32 border rounded-lg px-3 py-2 text-sm">
+    <select id="o-tipo" aria-label="Tipo" class="border rounded-lg px-3 py-2 text-sm"><option>Pedido</option><option>Preorden</option></select>
+    <button data-a="newOrder" class="bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"><i class="fa-solid fa-plus mr-1"></i>Capturar pedido</button></div>` : '';
+  return head('fa-clipboard-list', 'text-amber-700', 'Pedidos y preórdenes') + form + table(['Folio', 'Cliente', 'Tipo', 'Total', 'Estado', 'Acciones'], S.orders.map(o => {
+    const s = STEPS[o.estado], ed = canEditOrder(o), id = `data-id="${esc(o.folio)}"`;
+    const acc = (s && can(s[2]) ? abtn('step', s[0], 'bg-indigo-100 text-indigo-800', `data-v="${esc(o.folio)}"`) : '') + (can('borrar') ? abtn('delOrder', 'Eliminar', 'bg-red-100 text-red-700', `data-v="${esc(o.folio)}"`) : '');
+    return [`<b>${esc(o.folio)}</b>`, ed ? inp('ocli', o.cliente, id, 'w-40') : esc(o.cliente), o.tipo, ed ? inp('otot', o.total, id + ' type="number" min="1"', 'w-24') : money(o.total),
+      ed && can('surtir') ? `<select data-c="oest" ${id} class="border rounded-lg px-2 py-1 text-xs">${Object.keys(ESTADO_C).map(e => `<option ${e === o.estado ? 'selected' : ''}>${e}</option>`).join('')}</select>` : `<span class="text-xs px-2 py-0.5 rounded-full ${ESTADO_C[o.estado]}">${o.estado}</span>`,
+      acc || '<span class="text-xs text-gray-400">—</span>'];
+  }));
+}
+function vInventario() {
+  const low = PRODUCTS.filter(p => p.s > 0 && p.s < 10).length, out = PRODUCTS.filter(p => !p.s).length;
+  return head('fa-boxes-stacked', 'text-emerald-700', 'Inventario / almacén')
+    + `<div class="grid sm:grid-cols-3 gap-4 mb-6">${kpi('Productos activos', PRODUCTS.length)}${kpi('Bajo stock (menos de 10)', low, 'text-orange-600')}${kpi('Agotados', out, 'text-red-600')}</div>`
+    + table(['Producto', 'Stock', 'Estado', 'Movimientos'], PRODUCTS.map(p => [p.n, p.s + ' u.',
+      p.s === 0 ? '<span class="text-red-600 font-medium">Agotado</span>' : p.s < 10 ? '<span class="text-orange-600 font-medium">Bajo</span>' : '<span class="text-green-600">OK</span>',
+      can('inventario') ? `<input type="number" min="0" value="${p.s}" data-c="pstock" data-id="${p.id}" aria-label="Stock exacto" class="w-20 border rounded-lg px-2 py-1 text-sm mr-1">` + abtn('stock', '+10 entrada', 'bg-emerald-100 text-emerald-800', `data-v="${p.id}" data-d="10"`) + abtn('stock', '−1 salida / merma', 'bg-orange-100 text-orange-800', `data-v="${p.id}" data-d="-1"`) : '—']));
+}
+function vProductos() {
+  const ed = can('productos'), add = ed ? `<div class="flex flex-wrap gap-2 mb-4 bg-white p-3 rounded-xl border">
+    <input id="n-name" aria-label="Nombre" maxlength="50" placeholder="Nuevo producto" class="flex-1 min-w-40 border rounded-lg px-3 py-2 text-sm">
+    <select id="n-cat" aria-label="Categoría" class="border rounded-lg px-3 py-2 text-sm">${Object.entries(CATS).map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select>
+    <input id="n-price" type="number" min="1" aria-label="Precio de 1 kg" placeholder="Precio 1 kg" class="w-28 border rounded-lg px-3 py-2 text-sm">
+    <button data-a="newProd" class="bg-amber-700 hover:bg-amber-800 text-white text-sm font-semibold px-4 py-2 rounded-lg"><i class="fa-solid fa-plus mr-1"></i>Agregar</button></div>` : '';
+  return head('fa-tags', 'text-amber-700', 'Productos y precios') + add + `<div class="grid sm:grid-cols-2 gap-3">${PRODUCTS.map(p => `
+    <div class="bg-white border rounded-xl p-3"><div class="flex items-center gap-2 mb-2">${inp('pname', p.n, `data-id="${p.id}" ${ed ? '' : 'disabled'}`, 'flex-1 font-medium')}${can('borrar') ? abtn('delProd', 'Eliminar', 'bg-red-100 text-red-700', `data-v="${p.id}"`) : ''}</div>
+    <div class="flex flex-wrap gap-2">${p.o.map((o, i) => `<label class="text-xs text-gray-500">${o[0]}<input type="number" min="1" step="0.5" value="${o[2]}" data-c="price" data-id="${p.id}" data-o="${i}" ${ed ? '' : 'disabled'} class="block w-24 border rounded-lg px-2 py-1 text-sm text-gray-800 disabled:bg-gray-100"></label>`).join('')}</div></div>`).join('')}</div>`;
+}
+function vUsuarios() {
+  const mine = ROLES[S.role].nivel, low = Object.entries(ROLES).filter(([, r]) => r.nivel > mine);
+  const add = can('usuarios') ? `<div class="flex flex-wrap gap-2 mb-4 bg-white p-3 rounded-xl border">
+    <input id="u-name" aria-label="Nombre" maxlength="50" placeholder="Nombre del usuario" class="flex-1 min-w-40 border rounded-lg px-3 py-2 text-sm">
+    <select id="u-rol" aria-label="Rol" class="border rounded-lg px-3 py-2 text-sm">${low.map(([k, r]) => `<option value="${k}">${r.nombre}</option>`).join('')}</select>
+    <button data-a="newUser" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"><i class="fa-solid fa-user-plus mr-1"></i>Agregar usuario</button></div>` : '';
+  return head('fa-users', 'text-indigo-700', 'Usuarios y roles') + add + table(['Nombre', 'Rol', 'Nivel', 'Estado', 'Acciones'], S.users.map((u, i) => {
+    const r = ROLES[u.rol], ok = manages(u);
+    return [esc(u.n), ok ? `<select data-c="urole" data-id="${i}" aria-label="Rol de ${esc(u.n)}" class="border rounded-lg px-2 py-1 text-xs">${low.map(([k, x]) => `<option value="${k}" ${k === u.rol ? 'selected' : ''}>${x.nombre}</option>`).join('')}</select>` : r.nombre, r.tag,
+      u.on ? '<span class="text-green-600 text-xs font-medium">Activo</span>' : '<span class="text-gray-400 text-xs">Inactivo</span>',
+      ok ? abtn('toggleUser', u.on ? 'Desactivar' : 'Activar', 'bg-indigo-100 text-indigo-800', `data-v="${i}"`) + (can('borrar') ? abtn('delUser', 'Eliminar', 'bg-red-100 text-red-700', `data-v="${i}"`) : '') : '<span class="text-xs text-gray-400">Sin permiso</span>'];
+  })) + `<p class="text-xs text-gray-500 mt-3">${S.role === 'admin' ? 'Como Admin Jefe gestionas a todos los niveles inferiores.' : 'Solo gestionas usuarios de nivel inferior al tuyo.'}</p>`;
+}
+function vReportes() {
+  const o = S.orders, total = o.reduce((a, x) => a + x.total, 0);
+  return head('fa-chart-line', 'text-violet-700', 'Reportes') + `<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    ${kpi('Ventas registradas', money(total))}${kpi('Pedidos', o.filter(x => x.tipo === 'Pedido').length)}${kpi('Preórdenes', o.filter(x => x.tipo === 'Preorden').length)}${kpi('Ticket promedio', money(o.length ? total / o.length : 0))}</div>
+    <div class="bg-white rounded-xl border p-4"><p class="text-sm font-semibold mb-3">Pedidos por estado</p>${Object.keys(ESTADO_C).map(e => { const n = o.filter(x => x.estado === e).length;
+      return `<div class="flex items-center gap-3 text-xs mb-2"><span class="w-28">${e}</span><div class="flex-1 bg-stone-100 rounded-full h-2.5"><div class="bg-amber-600 h-2.5 rounded-full" style="width:${o.length ? n / o.length * 100 : 0}%"></div></div><span class="w-5 text-right">${n}</span></div>`; }).join('')}</div>`;
+}
+function vConfig() {
+  const ed = can('config'), f = (l, k, t = 'text', a = '') => `<label class="block text-sm font-medium">${l}<input data-c="cfg" data-k="${k}" type="${t}" value="${esc(S.cfg[k])}" ${a} ${ed ? '' : 'disabled'} class="block w-full mt-1 border rounded-lg px-3 py-2 text-sm font-normal disabled:bg-gray-100"></label>`;
+  return head('fa-gear', 'text-stone-600', 'Configuración') + `<div class="bg-white rounded-2xl border p-5 grid sm:grid-cols-3 gap-4">${f('Nombre de la empresa', 'empresa')}${f('WhatsApp (con lada, solo dígitos)', 'wa', 'text', 'inputmode="numeric"')}${f('Días mínimos de preorden', 'dias', 'number', 'min="0" max="30"')}</div>`
+    + (ed ? '<p class="text-xs text-gray-500 mt-3">Los cambios se aplican de inmediato en la tienda.</p>' : '<p class="text-xs text-gray-500 mt-3">Tu rol solo puede consultar esta sección.</p>');
+}
+function vSeguridad() {
+  const cols = Object.entries(ROLES);
+  const matrix = table(['Permiso', ...cols.map(([, r]) => r.nombre)], Object.entries(PERM_LABEL).map(([p, l]) => [l, ...cols.map(([k, r]) =>
+    `<input type="checkbox" data-c="perm" data-r="${k}" data-p="${p}" ${r.perms.includes(p) ? 'checked' : ''} ${k === 'admin' || p === 'seguridad' || (k === 'cliente' && p === 'tienda') ? 'disabled' : ''} aria-label="${l} para ${r.nombre}" class="w-4 h-4 accent-amber-700">`)]));
+  const log = S.log.length ? S.log.map(e => `<li class="flex gap-3 py-1.5 border-b last:border-0"><time class="text-gray-400 w-28 shrink-0">${new Date(e.t).toLocaleString('es-MX', {dateStyle:'short', timeStyle:'short'})}</time><b class="w-32 shrink-0">${esc(e.u)}</b><span>${esc(e.m)}</span></li>`).join('') : '<li class="text-gray-400">Aún no hay movimientos.</li>';
+  return head('fa-shield-halved', 'text-red-700', 'Seguridad y auditoría') + '<p class="text-xs text-gray-500 mb-3">Define qué puede hacer cada rol. El Admin Jefe conserva siempre todo y es el único con acceso a este módulo.</p>' + matrix
+    + `<div class="flex justify-between items-center mt-8 mb-3"><h3 class="font-bold">Bitácora de movimientos</h3>${abtn('clearLog', 'Limpiar', 'bg-red-100 text-red-700')}</div><ul class="scroll bg-white rounded-2xl border p-4 text-xs max-h-80 overflow-y-auto">${log}</ul>`;
+}
+const MODULES = [
+  {id:'pedidos', label:'Pedidos', perm:'pedidos', render:vPedidos}, {id:'inventario', label:'Inventario', perm:'inventario', render:vInventario},
+  {id:'productos', label:'Productos', perm:'productos', render:vProductos}, {id:'usuarios', label:'Usuarios', perm:'usuarios', render:vUsuarios},
+  {id:'reportes', label:'Reportes', perm:'reportes', render:vReportes}, {id:'config', label:'Configuración', perm:'config', render:vConfig},
+  {id:'seguridad', label:'Seguridad', perm:'seguridad', render:vSeguridad}
+];
+function renderStaff() {
+  const r = ROLES[S.role], mods = MODULES.filter(m => can(m.perm));
+  if (!mods.some(m => m.id === S.panel)) S.panel = mods[0]?.id;
+  $('nav-items').innerHTML = mods.map(m => `<button data-a="nav" data-v="${m.id}" class="px-3 py-1.5 rounded-lg ${S.view === 'staff' && m.id === S.panel ? 'bg-amber-800 text-white font-medium' : 'text-amber-200 hover:bg-amber-900'}">${m.label}</button>`).join('')
+    + (can('tienda') ? `<button data-a="view" data-v="store" class="ml-auto px-3 py-1.5 rounded-lg text-xs ${S.view === 'store' ? 'bg-amber-800 text-white' : 'text-amber-300 hover:bg-amber-900'}"><i class="fa-solid fa-store mr-1"></i>Ver tienda</button>` : '');
+  $('banner').className = `mb-6 rounded-2xl p-4 border flex flex-wrap items-start gap-3 bg-${r.color}-50 border-${r.color}-200 text-${r.color}-900`;
+  $('banner').innerHTML = `<div class="text-2xl"><i class="fa-solid ${r.icon}"></i></div><div class="flex-1 min-w-[200px]"><p class="font-bold">${r.nombre} <span class="text-xs font-normal opacity-70">(Nivel ${r.tag})</span></p><p class="text-sm mt-1 opacity-90">${r.desc}</p></div>
+    <div class="text-xs flex flex-wrap gap-x-3 gap-y-1 max-w-sm">${Object.entries(PERM_LABEL).map(([k, l]) => `<span>${can(k) ? '✅' : '❌'} ${l}</span>`).join('')}</div>`;
+  const m = mods.find(x => x.id === S.panel);
+  $('staff-main').innerHTML = m ? m.render() : '';
+}
+
+/* ============ ACCIONES (delegación de eventos) ============ */
+const A = {
+  login:d => enter(d.v),
+  logout() { stopMic(); S.role = null; store.set('role', null); hide('app'); hide('login', false); },
+  view:d => setView(d.v), nav:d => { S.panel = d.v; setView('staff'); },
+  cart:() => toggleCart(), chat:toggleChat, send:() => sendChat(), sug:d => sendChat(d.v),
+  cat:d => { S.cat = d.v; renderCats(); renderCatalog(); },
+  add:d => { const p = prod(+d.v); addToCart(p.id, +$('sel-' + p.id).value); toast(p.n + ' agregado', 'success'); },
+  addRec:d => addToCart(+d.v, 0),
+  qty:d => { const l = S.cart[+d.v]; l.q += +d.d; if (l.q <= 0) S.cart.splice(+d.v, 1); save(); renderCart(); },
+  del:d => { S.cart.splice(+d.v, 1); save(); renderCart(); },
+  tab:d => showTab(d.v), analyze, addPlan, calcY:calcYield, mic:d => mic(...d.v.split('|')),
+  slide:d => { showSlide(S.slide + +d.v); play(); }, go:d => { showSlide(+d.v); play(); },
+  quote() { if (!validOrder()) return; $('quote-text').textContent = orderText('COTIZACIÓN · Materias Primas IA'); hide('modal', false); },
+  closeQuote:() => hide('modal'),
+  copy() { navigator.clipboard.writeText($('quote-text').textContent).then(() => toast('Cotización copiada', 'success'), () => toast('No se pudo copiar', 'warning')); },
+  waQuote:() => window.open(`${waUrl()}?text=${encodeURIComponent($('quote-text').textContent)}`, '_blank', 'noopener'),
+  wa() {
+    if (!validOrder()) return;
+    const pre = $('is-pre').checked, text = orderText('*Orden de compra · Materias Primas IA*');
+    S.orders.unshift({folio:nextFolio(pre ? 'PRE' : 'PED'), cliente:'Cliente web', tipo:pre ? 'Preorden' : 'Pedido', total:cartTotal(), estado:'Pendiente'});
+    S.cart = []; save(); renderCart(); toggleCart(false);
+    window.open(`${waUrl()}?text=${encodeURIComponent(text)}`, '_blank', 'noopener'); toast('Pedido registrado y enviado', 'success');
+  },
+  newOrder() {
+    if (!need('capturar')) return;
+    const cliente = $('o-cli').value.trim(), total = +$('o-tot').value;
+    if (!cliente || !(total > 0)) return toast('Captura cliente y un total mayor a cero', 'warning');
+    const tipo = $('o-tipo').value;
+    S.orders.unshift({folio:nextFolio(tipo === 'Preorden' ? 'PRE' : 'PED'), cliente, tipo, total, estado:'Pendiente'});
+    audit('Capturó pedido ' + S.orders[0].folio); renderStaff(); toast('Pedido capturado', 'success');
+  },
+  step(d) { const o = S.orders.find(x => x.folio === d.v), s = o && STEPS[o.estado]; if (!s || !need(s[2])) return; o.estado = s[1]; audit(`${o.folio} → ${s[1]}`); renderStaff(); toast(`${o.folio}: ${s[1]}`, 'success'); },
+  stock(d) { if (!need('inventario')) return; const p = prod(+d.v); p.s = Math.max(0, p.s + +d.d); audit(`Stock ${p.n}: ${d.d > 0 ? '+' : ''}${d.d}`); refresh(); },
+  toggleUser(d) { const u = S.users[+d.v]; if (!need('usuarios') || ROLES[u.rol].nivel <= ROLES[S.role].nivel) return toast('No puedes gestionar este usuario', 'warning'); u.on = !u.on; audit(`${u.on ? 'Activó' : 'Desactivó'} a ${u.n}`); renderStaff(); }
+};
+const C = {
+  pre:el => { hide('pre-panel', !el.checked); if (el.checked) $('pre-date').min = new Date(Date.now() + S.cfg.dias * 864e5).toISOString().slice(0, 10); },
+  ytype:el => { hide('y-kg', el.value !== 'porciones'); hide('y-n', el.value === 'porciones'); },
+  price(el) { if (!need('productos')) return; const v = parseFloat(el.value); if (!(v > 0)) return toast('Precio inválido', 'warning');
+    const p = prod(+el.dataset.id); p.o[+el.dataset.o][2] = v; audit(`Precio de ${p.n} → ${money(v)}`); refresh(); toast('Precio actualizado', 'success'); }
+};
+const ordEdit = (f, label) => el => { const o = S.orders.find(x => x.folio === el.dataset.id);
+  if (!o || !canEditOrder(o)) return toast('No puedes editar este pedido', 'warning');
+  if (f(o, el) === false) return; audit(`${label} ${o.folio}`); renderStaff(); };
+Object.assign(A, {
+  chatAdd(d) { const [id, i] = d.v.split('|'); addToCart(+id, +i); toast('Agregado a tu orden', 'success'); },
+  delOrder(d) { if (!need('borrar')) return; S.orders = S.orders.filter(o => o.folio !== d.v); audit('Eliminó pedido ' + d.v); renderStaff(); },
+  newProd() {
+    if (!need('productos')) return; const n = clean($('n-name').value), pr = +$('n-price').value;
+    if (!n || !(pr > 0)) return toast('Escribe nombre y precio', 'warning');
+    PRODUCTS.push({id:Math.max(...PRODUCTS.map(p => p.id)) + 1, n, c:$('n-cat').value, d:'Nuevo producto.', i:'fa-box', k:'amber', s:0, o:[['1 kg', 1000, pr]]});
+    audit('Creó producto ' + n); refresh(); toast('Producto creado', 'success');
+  },
+  delProd(d) {
+    if (!need('borrar')) return; const id = +d.v, p = prod(id);
+    if (Object.values(RECIPES).some(r => r.ing.some(i => i[0] === id)) || S.cart.some(l => l.id === id)) return toast('No se puede eliminar: está en una receta o en un carrito', 'warning');
+    PRODUCTS.splice(PRODUCTS.indexOf(p), 1); audit('Eliminó producto ' + p.n); refresh();
+  },
+  newUser() {
+    if (!need('usuarios')) return; const n = clean($('u-name').value), r = $('u-rol').value;
+    if (!n || !ROLES[r] || ROLES[r].nivel <= ROLES[S.role].nivel) return toast('Escribe un nombre y elige un rol permitido', 'warning');
+    S.users.push({n, rol:r, on:true}); audit(`Creó usuario ${n} (${ROLES[r].nombre})`); renderStaff();
+  },
+  delUser(d) { const u = S.users[+d.v]; if (!u || !need('borrar') || !manages(u)) return toast('No puedes eliminar este usuario', 'warning'); S.users.splice(+d.v, 1); audit('Eliminó usuario ' + u.n); renderStaff(); },
+  clearLog() { if (!need('seguridad')) return; S.log = []; save(); renderStaff(); }
+});
+Object.assign(C, {
+  ocli:ordEdit((o, el) => { o.cliente = clean(el.value) || o.cliente; }, 'Editó cliente de'),
+  otot:ordEdit((o, el) => { if (+el.value > 0) o.total = +el.value; }, 'Editó total de'),
+  oest:ordEdit((o, el) => { if (!can('surtir')) return false; o.estado = el.value; }, 'Cambió estado de'),
+  pstock(el) { if (!need('inventario')) return; const p = prod(+el.dataset.id), v = Math.max(0, Math.floor(+el.value) || 0); audit(`Stock ${p.n}: ${p.s} → ${v}`); p.s = v; refresh(); },
+  pname(el) { if (!need('productos')) return; const p = prod(+el.dataset.id), v = clean(el.value); if (!v) return; audit(`Renombró ${p.n} → ${v}`); p.n = v; refresh(); },
+  urole(el) {
+    const u = S.users[+el.dataset.id], r = el.value;
+    if (!u || !manages(u) || !ROLES[r] || ROLES[r].nivel <= ROLES[S.role].nivel) return toast('No puedes asignar ese rol', 'warning');
+    audit(`${u.n}: ${ROLES[u.rol].nombre} → ${ROLES[r].nombre}`); u.rol = r; renderStaff();
+  },
+  cfg(el) {
+    if (!need('config')) return; const k = el.dataset.k; let v = el.value.trim();
+    if (k === 'wa') v = v.replace(/\D/g, ''); if (k === 'dias') v = Math.min(30, Math.max(0, +v || 0)); if (k === 'empresa') v = clean(v);
+    if (v === '') return toast('Valor requerido', 'warning'); S.cfg[k] = v; audit('Cambió configuración: ' + k); applyCfg(); renderStaff(); toast('Configuración guardada', 'success');
+  },
+  perm(el) {
+    if (!need('seguridad')) return; const {r, p} = el.dataset, role = ROLES[r], dep = ['capturar', 'editar', 'surtir'];
+    if (r === 'admin' || p === 'seguridad') return;
+    role.perms = el.checked ? [...new Set([...role.perms, p])] : role.perms.filter(x => x !== p);
+    if (el.checked && dep.includes(p) && !role.perms.includes('pedidos')) role.perms.push('pedidos');
+    if (!el.checked && p === 'pedidos') role.perms = role.perms.filter(x => !dep.includes(x));
+    audit(`${el.checked ? 'Concedió' : 'Quitó'} «${PERM_LABEL[p]}» a ${role.nombre}`); renderStaff();
+  }
+});
+document.addEventListener('click', e => { const el = e.target.closest('[data-a]'); if (el && A[el.dataset.a]) A[el.dataset.a](el.dataset, el); });
+document.addEventListener('change', e => { const el = e.target.closest('[data-c]'); if (el && C[el.dataset.c]) C[el.dataset.c](el); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { toggleCart(false); hide('modal'); }
+  if (e.key === 'Enter' && e.target.id === 'chat-input') sendChat();
+  if (e.key === 'Enter' && e.target.id === 'ia-prompt') analyze();
+});
+
+/* ============ INICIO ============ */
+renderLogin(); renderCats(); renderCatalog(); renderSlides(); showSlide(0); play();
+fillYield(); applyCfg();
+$('search').addEventListener('input', debounce(renderCatalog, 150));
+$('hero').addEventListener('mouseenter', () => clearInterval(timer)); $('hero').addEventListener('mouseleave', play);
+showTab('recetas');
+if (S.role && ROLES[S.role]) enter(S.role);
+</script>
+</body>
+</html>
