@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Tienda profesional de materias primas — catálogo, preórdenes, WhatsApp e IA.">
+<title>Materias Primas IA · Tienda</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f6f4;--panel:#fff;--border:#e8e4df;--soft:#f3f1ee;
+  --text:#1c1917;--muted:#6b6560;--faint:#a39e98;
+  --b950:#3b1505;--b900:#6b2d0c;--b800:#8a3b10;--b700:#a84b12;--b600:#c2410c;--b500:#ea580c;
+  --b200:#fed7aa;--b100:#ffedd5;--b50:#fff7ed;
+  --ok:#157a3a;--ok-bg:#ecfdf3;--err:#b91c1c;--err-bg:#fef2f2;--warn:#a16207;
+  --r:16px;--shadow:0 1px 2px rgba(28,25,23,.06),0 8px 24px rgba(28,25,23,.06);
+  --shadow-lg:0 12px 40px rgba(28,25,23,.14);
+  --font:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased}
+.is-hidden{display:none!important}
+.container{max-width:1120px;margin:0 auto;padding:0 18px}
+button,input,select,textarea{font-family:inherit}
+:focus-visible{outline:2px solid var(--b500);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;border-radius:12px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s,transform .15s,box-shadow .15s}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:var(--b800);color:#fff}
+.btn-primary:hover{background:var(--b900)}
+.btn-accent{background:var(--b500);color:#fff}
+.btn-accent:hover{background:var(--b600)}
+.btn-success{background:#16a34a;color:#fff}
+.btn-success:hover{background:#15803d}
+.btn-outline{background:#fff;border-color:var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--b700);background:var(--b50)}
+.btn-ghost{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.12)}
+.btn-ghost:hover{background:rgba(255,255,255,.18)}
+.btn-sm{padding:7px 12px;font-size:12.5px;border-radius:10px}
+.btn-block{width:100%}
+.btn-icon{width:42px;height:42px;padding:0;border-radius:99px}
+.input,.select,textarea.input{width:100%;border:1px solid var(--border);border-radius:12px;padding:11px 14px;font-size:14px;background:#fff;color:var(--text)}
+.input:focus,.select:focus,textarea.input:focus{border-color:var(--b600);box-shadow:0 0 0 3px var(--b100);outline:none}
+label{font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:5px}
+.field{margin-bottom:14px}
+.hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.45}
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px}
+.pill-gray{background:var(--soft);color:var(--muted)}
+.pill-warn{background:#fef3c7;color:var(--warn)}
+.pill-err{background:var(--err-bg);color:var(--err)}
+.chip{border:1px solid var(--border);background:#fff;border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text);transition:.15s}
+.chip:hover{border-color:var(--b700);color:var(--b900)}
+.chip.on{background:var(--b800);border-color:var(--b800);color:#fff}
+header.top{position:sticky;top:0;z-index:40;background:rgba(59,21,5,.97);backdrop-filter:blur(10px);color:#fff;border-bottom:1px solid rgba(255,255,255,.06)}
+.top-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand .logo{width:42px;height:42px;background:linear-gradient(145deg,var(--b500),var(--b800));border-radius:12px;display:grid;place-items:center;font-size:18px;flex:none}
+.brand b{font-size:15.5px;display:block}
+.brand small{font-size:10.5px;color:var(--b200);display:block}
+.top-actions{display:flex;gap:8px;align-items:center;flex:none}
+#btn-cart{position:relative}
+.cart-n{position:absolute;top:-7px;right:-7px;background:#dc2626;color:#fff;font-size:11px;font-weight:800;min-width:19px;height:19px;border-radius:99px;display:grid;place-items:center;padding:0 5px;border:2px solid var(--b950)}
+.carousel{position:relative;background:var(--b950);color:#fff;overflow:hidden}
+.slides{position:relative;height:240px}
+@media(min-width:700px){.slides{height:280px}}
+.slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:28px 56px;opacity:0;pointer-events:none;transition:opacity .5s ease}
+.slide.on{opacity:1;pointer-events:auto}
+.slide-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.25}
+.slide-inner{position:relative;z-index:1;max-width:640px}
+.slide .tag{display:inline-block;background:rgba(234,88,12,.28);color:var(--b200);font-size:11px;font-weight:700;padding:4px 12px;border-radius:99px;margin-bottom:12px;text-transform:uppercase;letter-spacing:.04em}
+.slide h2{font-size:clamp(22px,4vw,32px);line-height:1.2;margin-bottom:10px}
+.slide p{color:#f3e8d8;font-size:14.5px;margin:0 auto 18px;max-width:480px}
+.car-btn{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:99px;border:none;background:rgba(0,0,0,.35);color:#fff;cursor:pointer;z-index:2;font-size:18px}
+.car-btn:hover{background:rgba(0,0,0,.55)}
+.car-btn.prev{left:12px}.car-btn.next{right:12px}
+.dots{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:2}
+.dots button{width:8px;height:8px;border-radius:99px;border:none;background:rgba(255,255,255,.35);cursor:pointer;padding:0;transition:.2s}
+.dots button.on{background:#fff;width:22px}
+.cat-head{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;padding:32px 0 8px}
+.cat-head h2{font-size:22px}
+.cat-head .sub{font-size:13px;color:var(--muted);margin-top:3px}
+.search-wrap{position:relative;width:min(300px,100%)}
+.search-wrap .ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);opacity:.4}
+.search-wrap .input{padding-left:40px;border-radius:99px}
+#cats{display:flex;flex-wrap:wrap;gap:8px;padding:12px 0 20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;padding-bottom:48px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;transition:.18s}
+.card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px)}
+.card .ph{height:110px;background:linear-gradient(145deg,var(--soft),#ebe7e1);display:grid;place-items:center;overflow:hidden}
+.card .ph img{width:100%;height:100%;object-fit:cover}
+.card .ph .ph-ico{font-size:30px;opacity:.5}
+.card .body{padding:16px;display:flex;flex-direction:column;gap:9px;flex:1}
+.card h3{font-size:15.5px}
+.card .desc{font-size:12.5px;color:var(--muted);flex:1}
+.card .meta{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.empty{text-align:center;padding:56px 16px;color:var(--muted)}
+.empty b{display:block;font-size:15px;color:var(--text);margin-bottom:6px}
+footer.site{background:var(--b950);color:var(--b200);text-align:center;padding:36px 16px 40px;font-size:13px}
+footer.site small{display:block;margin-top:12px;opacity:.5;font-size:11px}
+#cart{position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);background:#fff;z-index:50;display:flex;flex-direction:column;transform:translateX(105%);transition:transform .3s;box-shadow:var(--shadow-lg)}
+#cart.open{transform:none}
+.cart-head{background:var(--b950);color:#fff;padding:16px 18px;display:flex;justify-content:space-between;align-items:center}
+.cart-head button{background:none;border:none;color:#fff;font-size:24px;cursor:pointer}
+.cart-body{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.line{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--soft);padding-bottom:12px}
+.line .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.qty{display:inline-flex;align-items:center;gap:8px;margin-top:8px}
+.qty button{width:28px;height:28px;border-radius:99px;border:1px solid var(--border);background:var(--soft);cursor:pointer}
+.pre{border-top:1px solid var(--border);padding:14px 18px;background:var(--b50)}
+.pre label.chk{display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600;cursor:pointer}
+.cart-foot{border-top:1px solid var(--border);padding:16px 18px;background:var(--soft);display:flex;flex-direction:column;gap:8px}
+.total{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.total span{color:var(--muted);font-weight:600;font-size:13px}
+.total b{font-size:20px;color:var(--b900)}
+#overlay{position:fixed;inset:0;background:rgba(28,25,23,.4);z-index:45}
+#chat{position:fixed;bottom:92px;right:18px;width:min(390px,calc(100vw - 24px));height:min(520px,72vh);background:#fff;border-radius:18px;border:1px solid var(--border);box-shadow:var(--shadow-lg);z-index:50;display:flex;flex-direction:column;overflow:hidden}
+.chat-head{background:var(--b950);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.chat-head button{background:none;border:none;color:#fff;font-size:22px;cursor:pointer}
+.chat-msgs{flex:1;overflow:auto;padding:14px;background:var(--bg);display:flex;flex-direction:column;gap:10px}
+.bub{max-width:88%;padding:10px 13px;border-radius:16px;font-size:13.5px;line-height:1.45}
+.bub.u{align-self:flex-end;background:var(--b900);color:#fff;border-bottom-right-radius:4px}
+.bub.b{align-self:flex-start;background:#fff;border:1px solid var(--border);border-bottom-left-radius:4px}
+.chat-in{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border)}
+.chat-in .input{border-radius:99px}
+.fab{position:fixed;bottom:22px;right:18px;z-index:40;display:flex;gap:10px}
+.fab .btn{box-shadow:var(--shadow-lg)}
+.fab .wa{background:#16a34a;color:#fff}
+#toasts{position:fixed;top:72px;right:14px;z-index:90;display:flex;flex-direction:column;gap:8px;max-width:340px}
+.toast{background:var(--b900);color:#fff;padding:12px 16px;border-radius:12px;font-size:13px;box-shadow:var(--shadow-lg)}
+.toast.ok{background:var(--ok)}.toast.warn{background:#b45309}
+.modal{position:fixed;inset:0;background:rgba(28,25,23,.45);z-index:80;display:grid;place-items:center;padding:16px}
+.modal .box{background:#fff;border-radius:18px;padding:22px;width:min(460px,100%);max-height:90vh;overflow:auto;box-shadow:var(--shadow-lg)}
+.modal h3{font-size:17px;margin-bottom:6px}
+.modal .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="container top-row">
+    <div class="brand">
+      <div class="logo">🌾</div>
+      <div><b id="brand">Materias Primas IA</b><small>Comercializadora · Tienda en línea</small></div>
+    </div>
+    <div class="top-actions">
+      <button class="btn btn-ghost btn-sm" data-a="openAi">⚙ IA</button>
+      <button id="btn-cart" class="btn btn-primary btn-sm" data-a="cart">🛒 Orden <span class="cart-n" id="cart-n">0</span></button>
+    </div>
+  </div>
+</header>
+<div id="toasts"></div>
+<section class="carousel" aria-label="Promociones">
+  <div class="slides" id="slides"></div>
+  <button class="car-btn prev" data-a="slide" data-v="-1" aria-label="Anterior">‹</button>
+  <button class="car-btn next" data-a="slide" data-v="1" aria-label="Siguiente">›</button>
+  <div class="dots" id="dots"></div>
+</section>
+<main class="container">
+  <div class="cat-head">
+    <div><h2>Catálogo de materias primas</h2><p class="sub">Chiles, especias, harinas, aceites e insumos</p></div>
+    <div class="search-wrap"><span class="ico">🔍</span><input id="search" class="input" type="search" placeholder="Buscar producto…" aria-label="Buscar"></div>
+  </div>
+  <div id="cats"></div>
+  <div id="grid" class="grid"></div>
+  <div id="empty" class="empty is-hidden"><b>Sin resultados</b>Prueba otro nombre o categoría.</div>
+</main>
+<footer class="site"><p>Materias primas para tu negocio · Pedidos y preórdenes</p><small>© 2026 <span id="foot">Materias Primas IA</span></small></footer>
+<aside id="cart" inert>
+  <div class="cart-head"><strong>Orden / Preorden</strong><button data-a="cart" aria-label="Cerrar">×</button></div>
+  <div id="cart-items" class="cart-body"></div>
+  <div class="pre">
+    <label class="chk"><input type="checkbox" id="is-pre"> Programar como preorden</label>
+    <div id="pre-panel" class="is-hidden" style="margin-top:12px;display:grid;gap:10px">
+      <div><label for="pre-date">Fecha de entrega</label><input type="date" id="pre-date" class="input"></div>
+      <div><label for="pre-slot">Franja</label><select id="pre-slot" class="select"><option>Indistinto</option><option>Mañana (9–13 h)</option><option>Tarde (13–18 h)</option></select></div>
+      <div><label for="pre-notes">Notas</label><input id="pre-notes" class="input" maxlength="200" placeholder="Opcional"></div>
+    </div>
+  </div>
+  <div class="cart-foot">
+    <div class="total"><span>Total estimado</span><b id="cart-total">$0.00</b></div>
+    <button class="btn btn-outline btn-block" data-a="quote">Generar cotización</button>
+    <button class="btn btn-success btn-block" data-a="wa">Enviar por WhatsApp</button>
+  </div>
+</aside>
+<div id="overlay" class="is-hidden" data-a="cart"></div>
+<div id="chat" class="is-hidden">
+  <div class="chat-head"><div><strong>Asistente de tienda</strong><div style="font-size:11px;opacity:.7">Materias primas</div></div><button data-a="chat">×</button></div>
+  <div id="chat-msgs" class="chat-msgs"></div>
+  <div class="chat-in"><input id="chat-input" class="input" placeholder="Escribe tu pregunta…"><button class="btn btn-primary btn-sm" data-a="send">Enviar</button></div>
+</div>
+<div class="fab">
+  <button class="btn btn-primary btn-icon" data-a="chat" title="Asistente">💬</button>
+  <a class="btn btn-icon wa" id="btn-wa" href="https://wa.me/5215500000000" target="_blank" rel="noopener">✆</a>
+</div>
+<div id="modal-ai" class="modal is-hidden">
+  <div class="box">
+    <h3>Configurar IA</h3>
+    <p class="hint">Conecta OpenAI, Groq u OpenRouter. La clave solo se guarda en este navegador.</p>
+    <div class="field" style="margin-top:14px"><label for="ai-url">Endpoint</label><input id="ai-url" class="input" placeholder="https://api.openai.com/v1/chat/completions"></div>
+    <div class="field"><label for="ai-key">API Key</label><input id="ai-key" class="input" type="password" placeholder="sk-…" autocomplete="off"></div>
+    <div class="field"><label for="ai-model">Modelo</label><input id="ai-model" class="input" placeholder="gpt-4o-mini"></div>
+    <div class="field"><label for="cfg-wa">WhatsApp (solo dígitos)</label><input id="cfg-wa" class="input" inputmode="numeric" placeholder="5215512345678"></div>
+    <div class="field"><label for="cfg-name">Nombre empresa</label><input id="cfg-name" class="input" placeholder="Materias Primas IA"></div>
+    <div class="actions"><button class="btn btn-primary" data-a="saveAi">Guardar</button><button class="btn btn-outline" data-a="closeAi">Cerrar</button></div>
+  </div>
+</div>
+<div id="modal-quote" class="modal is-hidden">
+  <div class="box">
+    <h3>Cotización</h3>
+    <pre id="quote-text" style="white-space:pre-wrap;background:var(--soft);padding:14px;border-radius:12px;font-size:13px;margin:12px 0;border:1px solid var(--border)"></pre>
+    <div class="actions"><button class="btn btn-primary" data-a="copyQuote">Copiar</button><button class="btn btn-outline" data-a="closeQuote">Cerrar</button></div>
+  </div>
+</div>
+<script>
+'use strict';
+/* ============================================================
+   CÓMO AGREGAR IMÁGENES DESPUÉS
+   1) PRODUCTOS: en cada item pon img:'https://tu-foto.jpg'
+   2) CARRUSEL: en cada slide pon img:'https://tu-fondo.jpg'
+   Si dejas img:'' se ve el diseño sin foto (más limpio).
+   ============================================================ */
+const CATS={especias:'Especias',chiles:'Chiles secos',reposteria:'Repostería',harinas:'Harinas',aceites:'Aceites'};
+const PRODUCTS=[
+  {id:1,n:'Cúrcuma en Polvo',c:'especias',d:'Alta pureza, color intenso.',s:45,img:'',o:[['100 g',25],['500 g',110],['1 kg',200]]},
+  {id:2,n:'Chile Guajillo',c:'chiles',d:'Entero y limpio, para salsas y adobos.',s:12,img:'',o:[['250 g',40],['1 kg',140]]},
+  {id:3,n:'Cocoa Alcalinizada',c:'reposteria',d:'Ideal para repostería fina.',s:8,img:'',o:[['500 g',80],['1 kg',150]]},
+  {id:4,n:'Canela Ceylán',c:'especias',d:'Premium, rama entera.',s:30,img:'',o:[['100 g',45],['250 g',100]]},
+  {id:5,n:'Chile Ancho',c:'chiles',d:'Suave y sabroso.',s:5,img:'',o:[['250 g',50],['1 kg',165]]},
+  {id:6,n:'Harina de Almendra',c:'harinas',d:'Sin gluten, molienda fina.',s:22,img:'',o:[['500 g',120],['1 kg',220]]},
+  {id:7,n:'Aceite de Oliva E.V.',c:'aceites',d:'Extracción en frío.',s:18,img:'',o:[['500 ml',95],['1 L',175]]},
+  {id:8,n:'Chocolate Cobertura 70%',c:'reposteria',d:'Temperado, ideal cobertura.',s:9,img:'',o:[['500 g',140],['1 kg',260]]}
+];
+const SLIDES=[
+  {tag:'Materias primas',title:'Todo lo que tu cocina necesita',text:'Chiles, especias, harinas y aceites con presentaciones listas para negocio.',btn:'Ver catálogo',action:'catalog',img:''},
+  {tag:'Preórdenes',title:'Agenda tu entrega',text:'Programa tu pedido con fecha y franja horaria.',btn:'Armar preorden',action:'cart',img:''},
+  {tag:'Asistente IA',title:'Consulta al instante',text:'Pregunta por productos o tu orden con el asistente.',btn:'Abrir asistente',action:'chat',img:''}
+];
+const $=id=>document.getElementById(id);
+const money=n=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(n);
+const norm=s=>String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store={get(k,d){try{const v=localStorage.getItem('mp_tienda2:'+k);return v?JSON.parse(v):d}catch{return d}},set(k,v){try{localStorage.setItem('mp_tienda2:'+k,JSON.stringify(v))}catch{}}};
+const S={cat:'todos',slide:0,cart:store.get('cart',[]),cfg:store.get('cfg',{empresa:'Materias Primas IA',wa:'5215500000000',aiUrl:'https://api.openai.com/v1/chat/completions',aiKey:'',aiModel:'gpt-4o-mini',dias:2})};
+const save=()=>{store.set('cart',S.cart);store.set('cfg',S.cfg)};
+const prod=id=>PRODUCTS.find(p=>p.id===id);
+const cartTotal=()=>S.cart.reduce((a,l)=>{const p=prod(l.id);return a+(p?p.o[l.opt][1]*l.q:0)},0);
+const cartCount=()=>S.cart.reduce((a,l)=>a+l.q,0);
+function toast(msg,type){const d=document.createElement('div');d.className='toast'+(type==='ok'?' ok':type==='warn'?' warn':'');d.textContent=msg;$('toasts').append(d);setTimeout(()=>d.remove(),3200)}
+let slideTimer;
+function renderSlides(){
+  $('slides').innerHTML=SLIDES.map((s,i)=>`<div class="slide ${i===S.slide?'on':''}"><div class="slide-bg" style="${s.img?`background-image:url('${esc(s.img)}')`:''}"></div><div class="slide-inner">${s.tag?`<span class="tag">${esc(s.tag)}</span>`:''}<h2>${esc(s.title)}</h2><p>${esc(s.text)}</p><button class="btn btn-accent" data-a="${s.action}">${esc(s.btn)}</button></div></div>`).join('');
+  $('dots').innerHTML=SLIDES.map((_,i)=>`<button data-a="go" data-v="${i}" class="${i===S.slide?'on':''}" aria-label="Slide ${i+1}"></button>`).join('');
+}
+function showSlide(n){S.slide=(n+SLIDES.length)%SLIDES.length;[...$('slides').children].forEach((el,i)=>el.classList.toggle('on',i===S.slide));[...$('dots').children].forEach((el,i)=>el.classList.toggle('on',i===S.slide))}
+function playSlides(){clearInterval(slideTimer);slideTimer=setInterval(()=>showSlide(S.slide+1),6000)}
+function renderCats(){$('cats').innerHTML=[['todos','Todos'],...Object.entries(CATS)].map(([k,l])=>`<button class="chip ${S.cat===k?'on':''}" data-a="cat" data-v="${k}">${l}</button>`).join('')}
+function renderCatalog(){
+  const q=norm($('search').value.trim());
+  const list=PRODUCTS.filter(p=>(S.cat==='todos'||p.c===S.cat)&&(!q||norm(p.n+' '+p.d+' '+(CATS[p.c]||'')).includes(q)));
+  $('grid').innerHTML=list.map(p=>{
+    const stock=p.s===0?'<span class="badge pill-err">Agotado</span>':p.s<10?'<span class="badge pill-warn">Pocas piezas</span>':'';
+    const ph=p.img?`<img src="${esc(p.img)}" alt="${esc(p.n)}" loading="lazy" onerror="this.remove()">`:`<span class="ph-ico">🌾</span>`;
+    return `<article class="card"><div class="ph">${ph}</div><div class="body"><div class="meta"><span class="badge pill-gray">${CATS[p.c]}</span>${stock}</div><h3>${esc(p.n)}</h3><p class="desc">${esc(p.d)}</p><select id="sel-${p.id}" class="select">${p.o.map((o,i)=>`<option value="${i}">${o[0]} — ${money(o[1])}</option>`).join('')}</select><button class="btn btn-primary btn-sm" data-a="add" data-v="${p.id}" ${p.s===0?'disabled':''}>Agregar a la orden</button></div></article>`;
+  }).join('');
+  $('empty').classList.toggle('is-hidden',list.length>0);
+}
+function addToCart(id,opt,q=1){const l=S.cart.find(x=>x.id===id&&x.opt===opt);l?l.q+=q:S.cart.push({id,opt,q});save();renderCart()}
+function renderCart(){
+  $('cart-n').textContent=cartCount();$('cart-total').textContent=money(cartTotal());
+  $('cart-items').innerHTML=S.cart.length?S.cart.map((l,i)=>{const p=prod(l.id),o=p.o[l.opt];return `<div class="line"><div><b>${esc(p.n)}</b><div class="sub">${o[0]} · ${money(o[1])}</div><div class="qty"><button data-a="qty" data-v="${i}" data-d="-1">−</button><span>${l.q}</span><button data-a="qty" data-v="${i}" data-d="1">+</button></div></div><div style="text-align:right"><b>${money(o[1]*l.q)}</b><br><button data-a="del" data-v="${i}" style="border:0;background:none;color:var(--err);cursor:pointer;font-size:12px;margin-top:6px">Quitar</button></div></div>`}).join(''):'<p style="text-align:center;color:var(--muted);padding:36px 8px">Tu orden está vacía.</p>';
+}
+function toggleCart(force){const open=force!==undefined?force:!$('cart').classList.contains('open');$('cart').classList.toggle('open',open);$('cart').inert=!open;$('overlay').classList.toggle('is-hidden',!open);if(open)renderCart()}
+function orderText(title){const pre=$('is-pre').checked;const lines=S.cart.map((l,i)=>{const p=prod(l.id),o=p.o[l.opt];return `${i+1}. ${p.n} (${o[0]}) x${l.q} — ${money(o[1]*l.q)}`}).join('\n');let t=`${title}\n${S.cfg.empresa}\n\n${lines}\n\nTOTAL: ${money(cartTotal())} MXN\n`;if(pre)t+=`\n★ PREORDEN\nFecha: ${$('pre-date').value||'—'}\nFranja: ${$('pre-slot').value}\nNotas: ${$('pre-notes').value||'—'}\n`;return t}
+function validOrder(){if(!S.cart.length){toast('Agrega al menos un producto','warn');return false}if($('is-pre').checked&&!$('pre-date').value){toast('Elige la fecha de la preorden','warn');return false}return true}
+async function askAI(userText){
+  const url=(S.cfg.aiUrl||'').trim(),key=(S.cfg.aiKey||'').trim();if(!url||!key)return null;
+  const catalog=PRODUCTS.map(p=>({nombre:p.n,categoria:CATS[p.c],stock:p.s,presentaciones:p.o.map(o=>`${o[0]} = ${o[1]} MXN`)}));
+  const system=`Eres el asistente de la tienda de materias primas "${S.cfg.empresa}" en México. Ayudas con catálogo, presentaciones y precios. NO inventes productos. NO calcules recetas. Responde en español, breve. Catálogo: ${JSON.stringify(catalog)}`;
+  try{const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:S.cfg.aiModel||'gpt-4o-mini',messages:[{role:'system',content:system},{role:'user',content:userText}],temperature:0.3,max_tokens:450})});if(!res.ok)return null;const data=await res.json();return data?.choices?.[0]?.message?.content||null}catch{return null}
+}
+function bubble(who,html){const b=document.createElement('div');b.className='bub '+(who==='u'?'u':'b');b.innerHTML=html;$('chat-msgs').append(b);$('chat-msgs').scrollTop=$('chat-msgs').scrollHeight}
+async function sendChat(text){
+  const input=$('chat-input');const txt=(text??input.value).trim();if(!txt)return;input.value='';bubble('u',esc(txt));bubble('b','<span style="opacity:.6">Escribiendo…</span>');const last=$('chat-msgs').lastChild;
+  const remote=await askAI(txt);if(remote){last.innerHTML=esc(remote).replace(/\n/g,'<br>');return}
+  const t=norm(txt);
+  if(/ayuda|hola|buenas/.test(t)){last.innerHTML='Puedo orientarte sobre el <b>catálogo</b> y tu orden. Para IA real configura <b>⚙ IA</b>.';return}
+  if(/carrito|orden|total/.test(t)){last.innerHTML=S.cart.length?`Llevas <b>${cartCount()}</b> por <b>${money(cartTotal())}</b>.`:'Tu orden está vacía.';return}
+  const hit=PRODUCTS.find(p=>norm(p.n).split(' ').some(w=>w.length>3&&t.includes(w)));
+  if(hit){last.innerHTML=`<b>${esc(hit.n)}</b> · ${hit.s?hit.s+' en stock':'agotado'}<br>`+hit.o.map((o,i)=>`${o[0]} — ${money(o[1])} `+(hit.s?`<button class="btn btn-primary btn-sm" style="margin-left:6px" data-a="chatAdd" data-v="${hit.id}|${i}">Agregar</button>`:'')).join('<br>');return}
+  last.innerHTML=S.cfg.aiKey?'No hubo respuesta del modelo. Revisa clave o red.':'Configura tu <b>API Key</b> en ⚙ IA, o pregunta por un producto (ej. chile guajillo).';
+}
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-a]');if(!el)return;const a=el.dataset.a,v=el.dataset.v,d=el.dataset.d;
+  if(a==='cat'){S.cat=v;renderCats();renderCatalog()}
+  if(a==='add'){const p=prod(+v);addToCart(p.id,+$('sel-'+p.id).value);toast(p.n+' agregado','ok')}
+  if(a==='chatAdd'){const[id,opt]=v.split('|').map(Number);addToCart(id,opt);toast('Agregado','ok')}
+  if(a==='qty'){const l=S.cart[+v];l.q+=+d;if(l.q<=0)S.cart.splice(+v,1);save();renderCart()}
+  if(a==='del'){S.cart.splice(+v,1);save();renderCart()}
+  if(a==='cart')toggleCart();
+  if(a==='catalog')window.scrollTo({top:document.querySelector('main').offsetTop-60,behavior:'smooth'});
+  if(a==='chat'){$('chat').classList.toggle('is-hidden');if(!$('chat').classList.contains('is-hidden')&&!$('chat-msgs').children.length)bubble('b','Hola. Pregúntame por materias primas o tu orden. Para IA completa usa <b>⚙ IA</b>.')}
+  if(a==='send')sendChat();
+  if(a==='slide'){showSlide(S.slide+(+v));playSlides()}
+  if(a==='go'){showSlide(+v);playSlides()}
+  if(a==='openAi'){$('ai-url').value=S.cfg.aiUrl||'';$('ai-key').value=S.cfg.aiKey||'';$('ai-model').value=S.cfg.aiModel||'gpt-4o-mini';$('cfg-wa').value=S.cfg.wa||'';$('cfg-name').value=S.cfg.empresa||'';$('modal-ai').classList.remove('is-hidden')}
+  if(a==='closeAi')$('modal-ai').classList.add('is-hidden');
+  if(a==='saveAi'){S.cfg.aiUrl=$('ai-url').value.trim();S.cfg.aiKey=$('ai-key').value.trim();S.cfg.aiModel=$('ai-model').value.trim()||'gpt-4o-mini';S.cfg.wa=($('cfg-wa').value||'').replace(/\D/g,'')||S.cfg.wa;S.cfg.empresa=($('cfg-name').value||'').trim()||S.cfg.empresa;save();applyBrand();$('modal-ai').classList.add('is-hidden');toast(S.cfg.aiKey?'IA configurada':'Guardado sin API Key','ok')}
+  if(a==='quote'){if(!validOrder())return;$('quote-text').textContent=orderText('COTIZACIÓN · '+S.cfg.empresa);$('modal-quote').classList.remove('is-hidden')}
+  if(a==='closeQuote')$('modal-quote').classList.add('is-hidden');
+  if(a==='copyQuote')navigator.clipboard.writeText($('quote-text').textContent).then(()=>toast('Copiado','ok'));
+  if(a==='wa'){if(!validOrder())return;window.open('https://wa.me/'+S.cfg.wa+'?text='+encodeURIComponent(orderText('Orden · '+S.cfg.empresa)),'_blank','noopener');toast('Abriendo WhatsApp','ok')}
+});
+$('search').addEventListener('input',()=>renderCatalog());
+$('is-pre').addEventListener('change',e=>{$('pre-panel').classList.toggle('is-hidden',!e.target.checked);if(e.target.checked){const min=new Date(Date.now()+(S.cfg.dias||2)*864e5).toISOString().slice(0,10);$('pre-date').min=min;$('pre-date').value=min}});
+$('chat-input').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){toggleCart(false);$('modal-ai').classList.add('is-hidden');$('modal-quote').classList.add('is-hidden')}});
+document.querySelector('.carousel').addEventListener('mouseenter',()=>clearInterval(slideTimer));
+document.querySelector('.carousel').addEventListener('mouseleave',playSlides);
+function applyBrand(){$('brand').textContent=S.cfg.empresa;$('foot').textContent=S.cfg.empresa;document.title=S.cfg.empresa+' · Tienda';$('btn-wa').href='https://wa.me/'+S.cfg.wa}
+applyBrand();renderSlides();showSlide(0);playSlides();renderCats();renderCatalog();renderCart();
+</script>
+</body>
+</html>
