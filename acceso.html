@@ -1,0 +1,875 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+        content="Acceso a la plataforma Materias Primas IA">
+
+    <title>Acceso | Materias Primas IA</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.11"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .is-hidden {
+            display: none !important;
+        }
+
+        .fade-in {
+            animation: fade .35s ease-out;
+        }
+
+        @keyframes fade {
+
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+        }
+
+        .input-field {
+            transition: all .2s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #d97706;
+            box-shadow: 0 0 0 3px rgba(217, 119, 6, .15);
+        }
+
+        .btn-primary {
+            transition: all .2s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+        .background-decoration {
+            background:
+                radial-gradient(circle at 15% 20%, rgba(217,119,6,.20), transparent 30%),
+                radial-gradient(circle at 85% 80%, rgba(180,83,9,.18), transparent 30%);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            * {
+                animation: none !important;
+                transition: none !important;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body class="min-h-screen bg-stone-100 text-gray-800">
+
+    <main class="min-h-screen flex items-center justify-center
+        p-4 background-decoration">
+
+        <div class="w-full max-w-5xl">
+
+            <!-- ENCABEZADO -->
+
+            <header class="text-center mb-8">
+
+                <div class="inline-flex items-center justify-center
+                    w-16 h-16 rounded-2xl bg-amber-700
+                    text-white shadow-lg mb-4">
+
+                    <i class="fa-solid fa-wheat-awn text-3xl"></i>
+
+                </div>
+
+                <h1 class="text-3xl sm:text-4xl font-bold
+                    text-amber-950">
+
+                    Materias Primas <span class="text-amber-600">IA</span>
+
+                </h1>
+
+                <p class="text-stone-500 mt-2 text-sm">
+
+                    Comercializadora inteligente de materias primas
+
+                </p>
+
+            </header>
+
+
+            <!-- CONTENEDOR PRINCIPAL -->
+
+            <section class="bg-white rounded-3xl shadow-2xl
+                overflow-hidden border border-stone-200">
+
+                <div class="grid md:grid-cols-2">
+
+
+                    <!-- PANEL INFORMATIVO -->
+
+                    <div class="hidden md:flex flex-col justify-between
+                        bg-gradient-to-br from-amber-950
+                        via-amber-900 to-stone-900
+                        text-white p-10">
+
+                        <div>
+
+                            <div class="w-12 h-12 rounded-xl
+                                bg-amber-600/30 flex items-center
+                                justify-center text-amber-300 mb-8">
+
+                                <i class="fa-solid fa-seedling text-2xl"></i>
+
+                            </div>
+
+                            <h2 class="text-3xl font-bold leading-tight">
+
+                                Bienvenido a una nueva forma
+                                de gestionar tus materias primas.
+
+                            </h2>
+
+                            <p class="text-amber-200/80 mt-5
+                                leading-relaxed text-sm">
+
+                                Consulta productos, administra pedidos
+                                y utiliza herramientas de inteligencia
+                                artificial para optimizar tus compras.
+
+                            </p>
+
+                        </div>
+
+
+                        <!-- BENEFICIOS -->
+
+                        <div class="space-y-5 mt-10">
+
+                            <div class="flex items-center gap-3">
+
+                                <div class="w-10 h-10 rounded-lg
+                                    bg-amber-600/20 flex items-center
+                                    justify-center text-amber-300">
+
+                                    <i class="fa-solid fa-box"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <p class="font-semibold text-sm">
+                                        Catálogo de productos
+                                    </p>
+
+                                    <p class="text-xs text-amber-200/60">
+                                        Consulta nuestras materias primas.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="flex items-center gap-3">
+
+                                <div class="w-10 h-10 rounded-lg
+                                    bg-amber-600/20 flex items-center
+                                    justify-center text-amber-300">
+
+                                    <i class="fa-solid fa-brain"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <p class="font-semibold text-sm">
+                                        Inteligencia artificial
+                                    </p>
+
+                                    <p class="text-xs text-amber-200/60">
+                                        Calcula recetas y rendimientos.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="flex items-center gap-3">
+
+                                <div class="w-10 h-10 rounded-lg
+                                    bg-amber-600/20 flex items-center
+                                    justify-center text-amber-300">
+
+                                    <i class="fa-solid fa-clipboard-list"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <p class="font-semibold text-sm">
+                                        Gestión de pedidos
+                                    </p>
+
+                                    <p class="text-xs text-amber-200/60">
+                                        Organiza tus compras y preórdenes.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <p class="text-xs text-amber-300/50 mt-12">
+
+                            © 2026 Materias Primas IA
+
+                        </p>
+
+                    </div>
+
+
+
+                    <!-- PANEL DE AUTENTICACIÓN -->
+
+                    <div class="p-6 sm:p-10 lg:p-12">
+
+
+                        <!-- ================================= -->
+                        <!-- INICIAR SESIÓN -->
+                        <!-- ================================= -->
+
+                        <div id="loginPanel" class="fade-in">
+
+                            <div class="mb-8">
+
+                                <span class="inline-flex items-center
+                                    gap-2 text-xs font-bold
+                                    text-amber-700 bg-amber-100
+                                    px-3 py-1.5 rounded-full mb-4">
+
+                                    <i class="fa-solid fa-lock"></i>
+
+                                    ACCESO A LA PLATAFORMA
+
+                                </span>
+
+                                <h2 class="text-3xl font-bold
+                                    text-amber-950">
+
+                                    Iniciar sesión
+
+                                </h2>
+
+                                <p class="text-sm text-stone-500 mt-2">
+
+                                    Ingresa tus credenciales para continuar.
+
+                                </p>
+
+                            </div>
+
+
+                            <!-- FORMULARIO LOGIN -->
+
+                            <form action="login.php"
+                                method="POST"
+                                id="formLogin"
+                                autocomplete="on">
+
+
+                                <!-- CORREO -->
+
+                                <div class="mb-5">
+
+                                    <label for="loginCorreo"
+                                        class="block text-sm font-semibold
+                                        text-stone-700 mb-2">
+
+                                        Correo electrónico
+
+                                    </label>
+
+                                    <div class="relative">
+
+                                        <i class="fa-solid fa-envelope
+                                            absolute left-4 top-1/2
+                                            -translate-y-1/2
+                                            text-stone-400"></i>
+
+                                        <input
+                                            type="email"
+                                            id="loginCorreo"
+                                            name="correo"
+                                            placeholder="ejemplo@correo.com"
+                                            required
+                                            autocomplete="username"
+                                            class="input-field w-full
+                                            border border-stone-300
+                                            rounded-xl py-3 pl-11 pr-4
+                                            text-sm bg-stone-50">
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- CONTRASEÑA -->
+
+                                <div class="mb-6">
+
+                                    <label for="loginPassword"
+                                        class="block text-sm font-semibold
+                                        text-stone-700 mb-2">
+
+                                        Contraseña
+
+                                    </label>
+
+                                    <div class="relative">
+
+                                        <i class="fa-solid fa-key
+                                            absolute left-4 top-1/2
+                                            -translate-y-1/2
+                                            text-stone-400"></i>
+
+                                        <input
+                                            type="password"
+                                            id="loginPassword"
+                                            name="password"
+                                            placeholder="Ingresa tu contraseña"
+                                            required
+                                            autocomplete="current-password"
+                                            class="input-field w-full
+                                            border border-stone-300
+                                            rounded-xl py-3 pl-11 pr-12
+                                            text-sm bg-stone-50">
+
+                                        <button
+                                            type="button"
+                                            onclick="togglePassword('loginPassword', this)"
+                                            aria-label="Mostrar contraseña"
+                                            class="absolute right-4
+                                            top-1/2 -translate-y-1/2
+                                            text-stone-400 hover:text-amber-700">
+
+                                            <i class="fa-solid fa-eye"></i>
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- BOTÓN -->
+
+                                <button
+                                    type="submit"
+                                    class="btn-primary w-full
+                                    bg-amber-700 hover:bg-amber-800
+                                    text-white font-bold py-3.5
+                                    rounded-xl shadow-lg
+                                    shadow-amber-700/20">
+
+                                    <i class="fa-solid fa-right-to-bracket mr-2"></i>
+
+                                    Iniciar sesión
+
+                                </button>
+
+
+                            </form>
+
+
+                            <!-- CAMBIO A REGISTRO -->
+
+                            <div class="mt-8 text-center">
+
+                                <p class="text-sm text-stone-500">
+
+                                    ¿Todavía no tienes una cuenta?
+
+                                </p>
+
+                                <button
+                                    type="button"
+                                    onclick="showRegister()"
+                                    class="mt-2 font-bold text-amber-700
+                                    hover:text-amber-900 text-sm">
+
+                                    Crear una cuenta
+
+                                    <i class="fa-solid fa-arrow-right ml-1"></i>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- ================================= -->
+                        <!-- REGISTRO -->
+                        <!-- ================================= -->
+
+                        <div id="registerPanel" class="is-hidden fade-in">
+
+                            <div class="mb-7">
+
+                                <span class="inline-flex items-center
+                                    gap-2 text-xs font-bold
+                                    text-amber-700 bg-amber-100
+                                    px-3 py-1.5 rounded-full mb-4">
+
+                                    <i class="fa-solid fa-user-plus"></i>
+
+                                    NUEVO CLIENTE
+
+                                </span>
+
+                                <h2 class="text-3xl font-bold
+                                    text-amber-950">
+
+                                    Crear cuenta
+
+                                </h2>
+
+                                <p class="text-sm text-stone-500 mt-2">
+
+                                    Regístrate para acceder a nuestra tienda.
+
+                                </p>
+
+                            </div>
+
+
+                            <!-- FORMULARIO REGISTRO -->
+
+                            <form action="registro.php"
+                                method="POST"
+                                id="formRegistro"
+                                autocomplete="on">
+
+
+                                <!-- NOMBRE -->
+
+                                <div class="mb-4">
+
+                                    <label for="registroNombre"
+                                        class="block text-sm font-semibold
+                                        text-stone-700 mb-2">
+
+                                        Nombre completo
+
+                                    </label>
+
+                                    <div class="relative">
+
+                                        <i class="fa-solid fa-user
+                                            absolute left-4 top-1/2
+                                            -translate-y-1/2
+                                            text-stone-400"></i>
+
+                                        <input
+                                            type="text"
+                                            id="registroNombre"
+                                            name="nombre"
+                                            placeholder="Ingresa tu nombre"
+                                            maxlength="100"
+                                            required
+                                            autocomplete="name"
+                                            class="input-field w-full
+                                            border border-stone-300
+                                            rounded-xl py-3 pl-11 pr-4
+                                            text-sm bg-stone-50">
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- CORREO -->
+
+                                <div class="mb-4">
+
+                                    <label for="registroCorreo"
+                                        class="block text-sm font-semibold
+                                        text-stone-700 mb-2">
+
+                                        Correo electrónico
+
+                                    </label>
+
+                                    <div class="relative">
+
+                                        <i class="fa-solid fa-envelope
+                                            absolute left-4 top-1/2
+                                            -translate-y-1/2
+                                            text-stone-400"></i>
+
+                                        <input
+                                            type="email"
+                                            id="registroCorreo"
+                                            name="correo"
+                                            placeholder="ejemplo@correo.com"
+                                            required
+                                            autocomplete="email"
+                                            class="input-field w-full
+                                            border border-stone-300
+                                            rounded-xl py-3 pl-11 pr-4
+                                            text-sm bg-stone-50">
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- CONTRASEÑA -->
+
+                                <div class="mb-4">
+
+                                    <label for="registroPassword"
+                                        class="block text-sm font-semibold
+                                        text-stone-700 mb-2">
+
+                                        Contraseña
+
+                                    </label>
+
+                                    <div class="relative">
+
+                                        <i class="fa-solid fa-key
+                                            absolute left-4 top-1/2
+                                            -translate-y-1/2
+                                            text-stone-400"></i>
+
+                                        <input
+                                            type="password"
+                                            id="registroPassword"
+                                            name="password"
+                                            placeholder="Crea una contraseña"
+                                            minlength="8"
+                                            required
+                                            autocomplete="new-password"
+                                            class="input-field w-full
+                                            border border-stone-300
+                                            rounded-xl py-3 pl-11 pr-12
+                                            text-sm bg-stone-50">
+
+                                        <button
+                                            type="button"
+                                            onclick="togglePassword('registroPassword', this)"
+                                            aria-label="Mostrar contraseña"
+                                            class="absolute right-4
+                                            top-1/2 -translate-y-1/2
+                                            text-stone-400 hover:text-amber-700">
+
+                                            <i class="fa-solid fa-eye"></i>
+
+                                        </button>
+
+                                    </div>
+
+                                    <p class="text-xs text-stone-400 mt-1">
+
+                                        Utiliza al menos 8 caracteres.
+
+                                    </p>
+
+                                </div>
+
+
+                                <!-- CONFIRMAR CONTRASEÑA -->
+
+                                <div class="mb-6">
+
+                                    <label for="confirmarPassword"
+                                        class="block text-sm font-semibold
+                                        text-stone-700 mb-2">
+
+                                        Confirmar contraseña
+
+                                    </label>
+
+                                    <div class="relative">
+
+                                        <i class="fa-solid fa-shield-halved
+                                            absolute left-4 top-1/2
+                                            -translate-y-1/2
+                                            text-stone-400"></i>
+
+                                        <input
+                                            type="password"
+                                            id="confirmarPassword"
+                                            name="confirmar_password"
+                                            placeholder="Repite tu contraseña"
+                                            minlength="8"
+                                            required
+                                            autocomplete="new-password"
+                                            class="input-field w-full
+                                            border border-stone-300
+                                            rounded-xl py-3 pl-11 pr-12
+                                            text-sm bg-stone-50">
+
+                                        <button
+                                            type="button"
+                                            onclick="togglePassword('confirmarPassword', this)"
+                                            aria-label="Mostrar contraseña"
+                                            class="absolute right-4
+                                            top-1/2 -translate-y-1/2
+                                            text-stone-400 hover:text-amber-700">
+
+                                            <i class="fa-solid fa-eye"></i>
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- INFORMACIÓN DEL ROL -->
+
+                                <div class="bg-amber-50 border
+                                    border-amber-200 rounded-xl
+                                    p-3 mb-6">
+
+                                    <div class="flex items-start gap-3">
+
+                                        <i class="fa-solid fa-circle-info
+                                            text-amber-700 mt-1"></i>
+
+                                        <div>
+
+                                            <p class="text-sm font-bold
+                                                text-amber-900">
+
+                                                Registro como Cliente
+
+                                            </p>
+
+                                            <p class="text-xs text-amber-800/80 mt-1">
+
+                                                Las cuentas creadas desde este
+                                                formulario tendrán permisos
+                                                de Cliente. Los demás roles
+                                                son administrados desde el
+                                                panel correspondiente.
+
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- BOTÓN REGISTRO -->
+
+                                <button
+                                    type="submit"
+                                    class="btn-primary w-full
+                                    bg-amber-700 hover:bg-amber-800
+                                    text-white font-bold py-3.5
+                                    rounded-xl shadow-lg
+                                    shadow-amber-700/20">
+
+                                    <i class="fa-solid fa-user-plus mr-2"></i>
+
+                                    Crear cuenta
+
+                                </button>
+
+
+                            </form>
+
+
+                            <!-- CAMBIO A LOGIN -->
+
+                            <div class="mt-7 text-center">
+
+                                <p class="text-sm text-stone-500">
+
+                                    ¿Ya tienes una cuenta?
+
+                                </p>
+
+                                <button
+                                    type="button"
+                                    onclick="showLogin()"
+                                    class="mt-2 font-bold text-amber-700
+                                    hover:text-amber-900 text-sm">
+
+                                    <i class="fa-solid fa-arrow-left mr-1"></i>
+
+                                    Volver al inicio de sesión
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- PIE DE PÁGINA -->
+
+            <footer class="text-center mt-7">
+
+                <p class="text-xs text-stone-400">
+
+                    © 2026 Materias Primas IA.
+
+                    Todos los derechos reservados.
+
+                </p>
+
+                <p class="text-xs text-stone-400 mt-1">
+
+                    Plataforma de gestión y comercialización inteligente.
+
+                </p>
+
+            </footer>
+
+        </div>
+
+    </main>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script>
+
+        // Mostrar formulario de registro
+
+        function showRegister() {
+
+            document.getElementById("loginPanel").classList.add("is-hidden");
+
+            document.getElementById("registerPanel").classList.remove("is-hidden");
+
+            document.getElementById("registerPanel").classList.remove("fade-in");
+
+            void document.getElementById("registerPanel").offsetWidth;
+
+            document.getElementById("registerPanel").classList.add("fade-in");
+
+        }
+
+
+        // Mostrar formulario de inicio de sesión
+
+        function showLogin() {
+
+            document.getElementById("registerPanel").classList.add("is-hidden");
+
+            document.getElementById("loginPanel").classList.remove("is-hidden");
+
+            document.getElementById("loginPanel").classList.remove("fade-in");
+
+            void document.getElementById("loginPanel").offsetWidth;
+
+            document.getElementById("loginPanel").classList.add("fade-in");
+
+        }
+
+
+        // Mostrar u ocultar contraseña
+
+        function togglePassword(id, button) {
+
+            const input = document.getElementById(id);
+
+            const icon = button.querySelector("i");
+
+            if (input.type === "password") {
+
+                input.type = "text";
+
+                icon.classList.remove("fa-eye");
+
+                icon.classList.add("fa-eye-slash");
+
+                button.setAttribute("aria-label", "Ocultar contraseña");
+
+            } else {
+
+                input.type = "password";
+
+                icon.classList.remove("fa-eye-slash");
+
+                icon.classList.add("fa-eye");
+
+                button.setAttribute("aria-label", "Mostrar contraseña");
+
+            }
+
+        }
+
+
+        // Validación de coincidencia de contraseñas
+
+        document.getElementById("formRegistro").addEventListener("submit", function(e) {
+
+            const password = document.getElementById("registroPassword").value;
+
+            const confirmar = document.getElementById("confirmarPassword").value;
+
+            if (password !== confirmar) {
+
+                e.preventDefault();
+
+                alert("Las contraseñas no coinciden.");
+
+                document.getElementById("confirmarPassword").focus();
+
+            }
+
+        });
+
+    </script>
+
+</body>
+
+</html>
