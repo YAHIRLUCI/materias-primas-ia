@@ -1,4 +1,3 @@
-
 <?php
 
 /*
@@ -213,16 +212,15 @@ try {
 
     /*
     |--------------------------------------------------------------------------
-    | VALIDAR ROL
+    | VALIDAR ROL (4 NIVELES: 1 Cliente, 2 Operador, 3 Supervisor, 4 Admin)
     |--------------------------------------------------------------------------
     */
 
     $rolesPermitidos = [
-        "admin",
-        "supervisor",
+        "cliente",
         "operador",
-        "capturista",
-        "cliente"
+        "supervisor",
+        "admin"
     ];
 
     $rol = strtolower($usuario["rol"]);
@@ -260,17 +258,10 @@ try {
     */
 
     $destinos = [
-
-        "admin" => "panel.php",
-
+        "cliente"    => "tienda.php",
+        "operador"   => "panel.php",
         "supervisor" => "panel.php",
-
-        "operador" => "panel.php",
-
-        "capturista" => "panel.php",
-
-        "cliente" => "tienda.php"
-
+        "admin"      => "panel.php"
     ];
 
     header("Location: " . $destinos[$rol]);

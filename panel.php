@@ -1,4 +1,3 @@
-
 <?php
 
 session_start();
@@ -25,7 +24,7 @@ if ($rol === "cliente") {
 }
 
 /* =====================================================
-   2. ROLES Y PERMISOS
+   2. ROLES Y PERMISOS (4 NIVELES)
 ===================================================== */
 
 $permisosDisponibles = [
@@ -37,29 +36,23 @@ $permisosDisponibles = [
 
 $roles = [
     "admin" => [
-        "nombre" => "Admin Jefe",
-        "nivel" => 1,
+        "nombre" => "Admin Jefe (Nivel 4)",
+        "nivel" => 4,
         "permisos" => $permisosDisponibles
     ],
 
     "supervisor" => [
-        "nombre" => "Supervisor",
-        "nivel" => 2,
+        "nombre" => "Supervisor (Nivel 3)",
+        "nivel" => 3,
         "permisos" => array_values(
             array_diff($permisosDisponibles, ["seguridad", "borrar"])
         )
     ],
 
     "operador" => [
-        "nombre" => "Operador de Almacén",
-        "nivel" => 3,
-        "permisos" => ["pedidos", "surtir", "inventario"]
-    ],
-
-    "capturista" => [
-        "nombre" => "Capturista",
-        "nivel" => 3,
-        "permisos" => ["pedidos", "capturar", "editar", "tienda"]
+        "nombre" => "Operador (Nivel 2)",
+        "nivel" => 2,
+        "permisos" => ["pedidos", "capturar", "editar", "surtir", "inventario"]
     ]
 ];
 
@@ -109,7 +102,6 @@ function obtenerPresentacionesPOST($esEdicion = false) {
     $valores = $_POST["valor_medida"] ?? [];
     $unidades = $_POST["unidad"] ?? [];
     $precios = $_POST["precio"] ?? [];
-    $stocks = $_POST["stock"] ?? [];
     $ids = $_POST["id_presentacion"] ?? [];
 
     if (
@@ -117,7 +109,7 @@ function obtenerPresentacionesPOST($esEdicion = false) {
         !is_array($valores) ||
         !is_array($unidades) ||
         !is_array($precios) ||
-        !is_array($stocks)
+        ($esEdicion && !is_array($ids))
     ) {
         throw new Exception("Los datos de las presentaciones no son válidos.");
     }
@@ -132,35 +124,30 @@ function obtenerPresentacionesPOST($esEdicion = false) {
 
     for ($i = 0; $i < $total; $i++) {
 
-        $nombre = trim($nombres[$i] ?? "");
+        $nombre = trim((string)($nombres[$i] ?? ""));
         $valor = $valores[$i] ?? "";
-        $unidad = trim($unidades[$i] ?? "");
+        $unidad = trim((string)($unidades[$i] ?? ""));
         $precio = $precios[$i] ?? "";
-        $stock = $stocks[$i] ?? "";
 
         if (
             $nombre === "" ||
             $unidad === "" ||
             !is_numeric($valor) ||
-            !is_numeric($precio) ||
-            !is_numeric($stock)
+            !is_numeric($precio)
         ) {
             throw new Exception("Completa correctamente todas las presentaciones.");
         }
 
         $valor = (float)$valor;
         $precio = (float)$precio;
-        $stock = (float)$stock;
 
         if (
             $valor <= 0 ||
             $precio < 0 ||
-            $stock < 0 ||
             !is_finite($valor) ||
-            !is_finite($precio) ||
-            !is_finite($stock)
+            !is_finite($precio)
         ) {
-            throw new Exception("Revisa las medidas, precios y existencias.");
+            throw new Exception("Revisa las medidas y los precios de las presentaciones.");
         }
 
         if (
@@ -174,6 +161,9 @@ function obtenerPresentacionesPOST($esEdicion = false) {
 
         if ($esEdicion) {
             $id = isset($ids[$i]) ? (int)$ids[$i] : 0;
+            if ($id < 0) {
+                throw new Exception("El identificador de una presentación no es válido.");
+            }
         }
 
         $resultado[] = [
@@ -181,8 +171,7 @@ function obtenerPresentacionesPOST($esEdicion = false) {
             "nombre" => $nombre,
             "valor" => $valor,
             "unidad" => $unidad,
-            "precio" => $precio,
-            "stock" => $stock
+            "precio" => $precio
         ];
     }
 
@@ -275,8 +264,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 $rolesPermitidos = [
                     "supervisor",
-                    "operador",
-                    "capturista"
+                    "operador"
                 ];
 
                 if (
@@ -352,7 +340,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $rolesPermitidos = [
                     "supervisor",
                     "operador",
-                    "capturista",
                     "cliente"
                 ];
 
@@ -579,7 +566,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         precio,
                         stock
                     )
-                    VALUES (?, ?, ?, ?, ?, ?)"
+                    VALUES (?, ?, ?, ?, ?, 0)"
                 );
 
                 foreach ($presentaciones as $p) {
@@ -589,8 +576,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         $p["nombre"],
                         $p["valor"],
                         $p["unidad"],
-                        $p["precio"],
-                        $p["stock"]
+                        $p["precio"]
                     ]);
                 }
 
@@ -702,8 +688,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                      SET nombre_presentacion = ?,
                          valor_medida = ?,
                          unidad = ?,
-                         precio = ?,
-                         stock = ?
+                         precio = ?
                      WHERE id_presentacion = ?
                        AND id_producto = ?"
                 );
@@ -718,7 +703,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         precio,
                         stock
                     )
-                    VALUES (?, ?, ?, ?, ?, ?)"
+                    VALUES (?, ?, ?, ?, ?, 0)"
                 );
 
                 foreach ($presentaciones as $p) {
@@ -741,7 +726,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             $p["valor"],
                             $p["unidad"],
                             $p["precio"],
-                            $p["stock"],
                             $p["id"],
                             $idProducto
                         ]);
@@ -753,8 +737,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             $p["nombre"],
                             $p["valor"],
                             $p["unidad"],
-                            $p["precio"],
-                            $p["stock"]
+                            $p["precio"]
                         ]);
                     }
                 }
@@ -806,6 +789,323 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
         }
 
+
+        /* =============================================
+           OPERACIONES DE INVENTARIO
+        ============================================= */
+
+        elseif (in_array(
+            $accion,
+            ["registrar_movimiento_inventario"],
+            true
+        )) {
+
+            if (!tienePermiso("inventario")) {
+                http_response_code(403);
+                throw new Exception("No tienes autorización para administrar el inventario.");
+            }
+
+            $idPresentacion = filter_var(
+                $_POST["id_presentacion"] ?? null,
+                FILTER_VALIDATE_INT
+            );
+
+            $tipoMovimiento = trim($_POST["tipo_movimiento"] ?? "");
+            $cantidadCapturada = $_POST["cantidad"] ?? "";
+            $motivo = trim($_POST["motivo"] ?? "");
+
+            if (!$idPresentacion || $idPresentacion < 1) {
+                throw new Exception("Selecciona una presentación válida.");
+            }
+
+            if (!in_array($tipoMovimiento, ["Entrada", "Salida", "Ajuste"], true)) {
+                throw new Exception("El tipo de movimiento no es válido.");
+            }
+
+            if (
+                !is_numeric($cantidadCapturada) ||
+                !is_finite((float)$cantidadCapturada) ||
+                (float)$cantidadCapturada < 0
+            ) {
+                throw new Exception("Introduce una cantidad numérica válida.");
+            }
+
+            $cantidadCapturada = round((float)$cantidadCapturada, 2);
+
+            if ($tipoMovimiento !== "Ajuste" && $cantidadCapturada <= 0) {
+                throw new Exception("La cantidad debe ser mayor que cero.");
+            }
+
+            if ($tipoMovimiento === "Ajuste" && $cantidadCapturada < 0) {
+                throw new Exception("El stock objetivo no puede ser negativo.");
+            }
+
+            if (mb_strlen($motivo) > 255) {
+                throw new Exception("El motivo no puede superar los 255 caracteres.");
+            }
+
+            $pdo->beginTransaction();
+
+            $buscarStock = $pdo->prepare(
+                "SELECT
+                    pg.id_presentacion,
+                    pg.stock,
+                    pg.nombre_presentacion,
+                    p.nombre AS nombre_producto
+                 FROM presentaciones_gramaje pg
+                 INNER JOIN productos p
+                    ON p.id_producto = pg.id_producto
+                 WHERE pg.id_presentacion = :id
+                 FOR UPDATE"
+            );
+
+            $buscarStock->execute([":id" => $idPresentacion]);
+            $presentacion = $buscarStock->fetch();
+
+            if (!$presentacion) {
+                throw new Exception("La presentación seleccionada no existe.");
+            }
+
+            $stockAnterior = round((float)($presentacion["stock"] ?? 0), 2);
+
+            if ($tipoMovimiento === "Entrada") {
+                $stockNuevo = round($stockAnterior + $cantidadCapturada, 2);
+                $cantidadMovimiento = $cantidadCapturada;
+            } elseif ($tipoMovimiento === "Salida") {
+                if ($cantidadCapturada > $stockAnterior) {
+                    throw new Exception(
+                        "No hay existencias suficientes. Stock disponible: " .
+                        number_format($stockAnterior, 2)
+                    );
+                }
+
+                $stockNuevo = round($stockAnterior - $cantidadCapturada, 2);
+                $cantidadMovimiento = $cantidadCapturada;
+            } else {
+                $stockNuevo = $cantidadCapturada;
+                $cantidadMovimiento = round(abs($stockNuevo - $stockAnterior), 2);
+
+                if ($cantidadMovimiento <= 0) {
+                    throw new Exception("El stock objetivo es igual al stock actual; no hay cambios que registrar.");
+                }
+            }
+
+            if ($stockNuevo < 0 || $stockNuevo > 99999999.99) {
+                throw new Exception("El stock resultante está fuera del rango permitido.");
+            }
+
+            $actualizarStock = $pdo->prepare(
+                "UPDATE presentaciones_gramaje
+                 SET stock = :stock
+                 WHERE id_presentacion = :id"
+            );
+
+            $actualizarStock->execute([
+                ":stock" => number_format($stockNuevo, 2, ".", ""),
+                ":id" => $idPresentacion
+            ]);
+
+            $insertarMovimiento = $pdo->prepare(
+                "INSERT INTO movimientos_inventario
+                (
+                    id_presentacion,
+                    tipo,
+                    cantidad,
+                    stock_anterior,
+                    stock_nuevo,
+                    motivo,
+                    id_usuario
+                )
+                VALUES
+                (
+                    :id_presentacion,
+                    :tipo,
+                    :cantidad,
+                    :stock_anterior,
+                    :stock_nuevo,
+                    :motivo,
+                    :id_usuario
+                )"
+            );
+
+            $motivoFinal = $motivo !== ""
+                ? $motivo
+                : (
+                    $tipoMovimiento === "Ajuste"
+                    ? "Ajuste de existencias"
+                    : "Movimiento de inventario"
+                );
+
+            $insertarMovimiento->execute([
+                ":id_presentacion" => $idPresentacion,
+                ":tipo" => $tipoMovimiento,
+                ":cantidad" => number_format($cantidadMovimiento, 2, ".", ""),
+                ":stock_anterior" => number_format($stockAnterior, 2, ".", ""),
+                ":stock_nuevo" => number_format($stockNuevo, 2, ".", ""),
+                ":motivo" => $motivoFinal,
+                ":id_usuario" => !empty($_SESSION["usuario_id"])
+                    ? (int)$_SESSION["usuario_id"]
+                    : null
+            ]);
+
+            $pdo->commit();
+
+            redirigir("inventario", "movimiento_registrado");
+        }
+
+        /* =============================================
+           SURTIR ORDEN DE COMPRA
+        ============================================= */
+
+        elseif ($accion === "confirmar_surtido") {
+
+            if (!tienePermiso("surtir")) {
+                http_response_code(403);
+                throw new Exception("No tienes autorización para surtir pedidos.");
+            }
+
+            $idOrden = filter_var(
+                $_POST["id_orden"] ?? null,
+                FILTER_VALIDATE_INT
+            );
+
+            if (!$idOrden || $idOrden < 1) {
+                throw new Exception("La orden seleccionada no es válida.");
+            }
+
+            $pdo->beginTransaction();
+
+            $buscarOrden = $pdo->prepare(
+                "SELECT id_orden, estado
+                 FROM ordenes_compra
+                 WHERE id_orden = :id
+                 FOR UPDATE"
+            );
+            $buscarOrden->execute([":id" => $idOrden]);
+            $ordenBloqueada = $buscarOrden->fetch(PDO::FETCH_ASSOC);
+
+            if (!$ordenBloqueada) {
+                throw new Exception("La orden de compra no existe.");
+            }
+
+            if ($ordenBloqueada["estado"] !== "Pendiente") {
+                throw new Exception("Esta orden ya no está pendiente y no puede surtirse nuevamente.");
+            }
+
+            $buscarDetalles = $pdo->prepare(
+                "SELECT id_detalle, id_presentacion, cantidad
+                 FROM detalle_orden
+                 WHERE id_orden = :id
+                 ORDER BY id_presentacion ASC, id_detalle ASC"
+            );
+            $buscarDetalles->execute([":id" => $idOrden]);
+            $detallesOrden = $buscarDetalles->fetchAll(PDO::FETCH_ASSOC);
+
+            if (!$detallesOrden) {
+                throw new Exception("La orden no contiene productos para surtir.");
+            }
+
+            $cantidadesPorPresentacion = [];
+            foreach ($detallesOrden as $detalle) {
+                $idPres = (int)($detalle["id_presentacion"] ?? 0);
+                $cantidadLinea = (float)($detalle["cantidad"] ?? 0);
+
+                if ($idPres < 1 || !is_finite($cantidadLinea) || $cantidadLinea <= 0) {
+                    throw new Exception("La orden contiene una presentación o cantidad no válida.");
+                }
+
+                if (!isset($cantidadesPorPresentacion[$idPres])) {
+                    $cantidadesPorPresentacion[$idPres] = 0.0;
+                }
+                $cantidadesPorPresentacion[$idPres] += $cantidadLinea;
+            }
+
+            ksort($cantidadesPorPresentacion, SORT_NUMERIC);
+            $idsPresentaciones = array_keys($cantidadesPorPresentacion);
+            $marcadores = implode(",", array_fill(0, count($idsPresentaciones), "?"));
+
+            $bloquearPresentaciones = $pdo->prepare(
+                "SELECT id_presentacion, stock
+                 FROM presentaciones_gramaje
+                 WHERE id_presentacion IN ($marcadores)
+                 ORDER BY id_presentacion ASC
+                 FOR UPDATE"
+            );
+            $bloquearPresentaciones->execute($idsPresentaciones);
+            $stocksBloqueados = $bloquearPresentaciones->fetchAll(PDO::FETCH_ASSOC);
+
+            $stockPorPresentacion = [];
+            foreach ($stocksBloqueados as $filaStock) {
+                $stockPorPresentacion[(int)$filaStock["id_presentacion"]] =
+                    round((float)$filaStock["stock"], 2);
+            }
+
+            foreach ($cantidadesPorPresentacion as $idPres => $cantidadNecesaria) {
+                if (!array_key_exists($idPres, $stockPorPresentacion)) {
+                    throw new Exception("Una presentación de la orden ya no existe en el inventario.");
+                }
+
+                $disponible = $stockPorPresentacion[$idPres];
+                if ($cantidadNecesaria > $disponible) {
+                    throw new Exception(
+                        "Inventario insuficiente para la presentación #" . $idPres .
+                        ". Solicitado: " . number_format($cantidadNecesaria, 2) .
+                        "; disponible: " . number_format($disponible, 2) . "."
+                    );
+                }
+            }
+
+            $actualizarStockSurtido = $pdo->prepare(
+                "UPDATE presentaciones_gramaje
+                 SET stock = :stock
+                 WHERE id_presentacion = :id"
+            );
+
+            $insertarMovimientoSurtido = $pdo->prepare(
+                "INSERT INTO movimientos_inventario
+                 (id_presentacion, tipo, cantidad, stock_anterior, stock_nuevo,
+                  motivo, id_orden, id_usuario)
+                 VALUES (:id_presentacion, 'Surtido', :cantidad, :anterior,
+                         :nuevo, :motivo, :id_orden, :id_usuario)"
+            );
+
+            foreach ($cantidadesPorPresentacion as $idPres => $cantidadNecesaria) {
+                $stockAnterior = $stockPorPresentacion[$idPres];
+                $stockNuevo = round($stockAnterior - $cantidadNecesaria, 2);
+
+                $actualizarStockSurtido->execute([
+                    ":stock" => number_format($stockNuevo, 2, ".", ""),
+                    ":id" => $idPres
+                ]);
+
+                $insertarMovimientoSurtido->execute([
+                    ":id_presentacion" => $idPres,
+                    ":cantidad" => number_format($cantidadNecesaria, 2, ".", ""),
+                    ":anterior" => number_format($stockAnterior, 2, ".", ""),
+                    ":nuevo" => number_format($stockNuevo, 2, ".", ""),
+                    ":motivo" => "Surtido de orden #" . $idOrden,
+                    ":id_orden" => $idOrden,
+                    ":id_usuario" => !empty($_SESSION["usuario_id"])
+                        ? (int)$_SESSION["usuario_id"]
+                        : null
+                ]);
+            }
+
+            $actualizarEstadoOrden = $pdo->prepare(
+                "UPDATE ordenes_compra
+                 SET estado = 'Surtido'
+                 WHERE id_orden = :id AND estado = 'Pendiente'"
+            );
+            $actualizarEstadoOrden->execute([":id" => $idOrden]);
+
+            if ($actualizarEstadoOrden->rowCount() !== 1) {
+                throw new Exception("No se pudo actualizar el estado de la orden. No se aplicaron cambios.");
+            }
+
+            $pdo->commit();
+            redirigir("surtir", "orden_surtida");
+        }
+
         else {
             http_response_code(400);
             die("Acción no válida.");
@@ -838,7 +1138,9 @@ $resultados = [
 
     "producto_creado" => "El producto y sus presentaciones se registraron correctamente.",
     "producto_actualizado" => "El producto y sus presentaciones se actualizaron correctamente.",
-    "producto_estado" => "El estado del producto se actualizó correctamente."
+    "producto_estado" => "El estado del producto se actualizó correctamente.",
+    "movimiento_registrado" => "El movimiento de inventario se registró correctamente.",
+    "orden_surtida" => "La orden se surtió correctamente y el inventario fue actualizado."
 ];
 
 $resultado = $_GET["resultado"] ?? "";
@@ -982,8 +1284,144 @@ if (tienePermiso("productos")) {
 
 $listaProductos = array_values($listaProductos);
 
+
 /* =====================================================
-   11. MENÚ DE NAVEGACIÓN
+   11. OBTENER INVENTARIO E HISTORIAL DE MOVIMIENTOS
+===================================================== */
+
+$listaInventario = [];
+$historialInventario = [];
+
+if (tienePermiso("inventario")) {
+
+    try {
+
+        $consultaInventario = $pdo->query(
+            "SELECT
+                pg.id_presentacion,
+                pg.id_producto,
+                pg.nombre_presentacion,
+                pg.valor_medida,
+                pg.unidad,
+                pg.precio,
+                COALESCE(pg.stock, 0) AS stock,
+                p.nombre AS nombre_producto,
+                c.nombre AS categoria
+             FROM presentaciones_gramaje pg
+             INNER JOIN productos p
+                ON p.id_producto = pg.id_producto
+             LEFT JOIN categorias c
+                ON c.id_categoria = p.id_categoria
+             WHERE p.activo = 1
+             ORDER BY p.nombre ASC, pg.valor_medida ASC, pg.id_presentacion ASC"
+        );
+
+        $listaInventario = $consultaInventario->fetchAll(PDO::FETCH_ASSOC);
+
+        $consultaHistorial = $pdo->query(
+            "SELECT
+                mi.id_movimiento,
+                mi.tipo,
+                mi.cantidad,
+                mi.stock_anterior,
+                mi.stock_nuevo,
+                mi.motivo,
+                mi.id_orden,
+                mi.fecha_movimiento,
+                pg.nombre_presentacion,
+                p.nombre AS nombre_producto,
+                u.nombre AS nombre_usuario
+             FROM movimientos_inventario mi
+             INNER JOIN presentaciones_gramaje pg
+                ON pg.id_presentacion = mi.id_presentacion
+             INNER JOIN productos p
+                ON p.id_producto = pg.id_producto
+             LEFT JOIN usuarios u
+                ON u.id = mi.id_usuario
+             ORDER BY mi.id_movimiento DESC
+             LIMIT 100"
+        );
+
+        $historialInventario = $consultaHistorial->fetchAll(PDO::FETCH_ASSOC);
+
+    } catch (PDOException $e) {
+        error_log("Error al consultar inventario: " . $e->getMessage());
+    }
+}
+
+
+/* =====================================================
+   11. ÓRDENES PENDIENTES PARA SURTIDO
+===================================================== */
+
+$ordenesPendientes = [];
+$detallesPendientes = [];
+
+if (tienePermiso("surtir")) {
+    try {
+        $consultaOrdenesPendientes = $pdo->query(
+            "SELECT
+                oc.id_orden,
+                oc.id_cliente,
+                oc.fecha_creacion,
+                oc.estado,
+                oc.subtotal,
+                oc.descuento_aplicado,
+                oc.total_final,
+                oc.observaciones,
+                COUNT(do.id_detalle) AS total_lineas
+             FROM ordenes_compra oc
+             LEFT JOIN detalle_orden do ON do.id_orden = oc.id_orden
+             WHERE oc.estado = 'Pendiente'
+             GROUP BY oc.id_orden, oc.id_cliente, oc.fecha_creacion,
+                      oc.estado, oc.subtotal, oc.descuento_aplicado,
+                      oc.total_final, oc.observaciones
+             ORDER BY oc.fecha_creacion ASC, oc.id_orden ASC"
+        );
+        $ordenesPendientes = $consultaOrdenesPendientes->fetchAll(PDO::FETCH_ASSOC);
+
+        if ($ordenesPendientes) {
+            $idsOrdenesPendientes = array_map(
+                static fn($orden) => (int)$orden["id_orden"],
+                $ordenesPendientes
+            );
+            $marcadoresOrdenes = implode(",", array_fill(0, count($idsOrdenesPendientes), "?"));
+
+            $consultaDetallesPendientes = $pdo->prepare(
+                "SELECT
+                    do.id_orden,
+                    do.id_detalle,
+                    do.id_producto,
+                    do.id_presentacion,
+                    do.cantidad,
+                    do.precio_unitario,
+                    do.subtotal,
+                    p.nombre AS nombre_producto,
+                    pg.nombre_presentacion
+                 FROM detalle_orden do
+                 LEFT JOIN productos p ON p.id_producto = do.id_producto
+                 LEFT JOIN presentaciones_gramaje pg ON pg.id_presentacion = do.id_presentacion
+                 WHERE do.id_orden IN ($marcadoresOrdenes)
+                 ORDER BY do.id_orden ASC, do.id_detalle ASC"
+            );
+            $consultaDetallesPendientes->execute($idsOrdenesPendientes);
+
+            foreach ($consultaDetallesPendientes->fetchAll(PDO::FETCH_ASSOC) as $detallePendiente) {
+                $idOrdenDetalle = (int)$detallePendiente["id_orden"];
+                if (!isset($detallesPendientes[$idOrdenDetalle])) {
+                    $detallesPendientes[$idOrdenDetalle] = [];
+                }
+                $detallesPendientes[$idOrdenDetalle][] = $detallePendiente;
+            }
+        }
+    } catch (PDOException $e) {
+        error_log("Error al consultar órdenes pendientes de surtido: " . $e->getMessage());
+    }
+}
+
+
+/* =====================================================
+   12. MENÚ DE NAVEGACIÓN
 ===================================================== */
 
 $modulos = [
@@ -1242,6 +1680,22 @@ if (
 
             <?php endforeach; ?>
 
+            <?php if (tienePermiso("tienda")): ?>
+
+                <p class="text-xs uppercase tracking-widest text-stone-500 mt-6 mb-3">
+                    Tienda
+                </p>
+
+                <a href="tienda.php"
+                   class="menu-link flex items-center gap-3 p-3 rounded-xl mb-1 text-amber-200 hover:text-white">
+
+                    <i class="fa-solid fa-store w-5"></i>
+                    <span class="text-sm">Abrir tienda en vivo</span>
+
+                </a>
+
+            <?php endif; ?>
+
         </nav>
 
         <div class="p-4 border-t border-white/10">
@@ -1394,15 +1848,15 @@ if (
                     <div class="card p-5">
 
                         <p class="text-sm text-stone-500">
-                            Capturistas
+                            Clientes
                         </p>
 
                         <h3 class="text-3xl font-bold text-stone-800 mt-2">
-                            <?= $usuariosPorRol["capturista"] ?? 0 ?>
+                            <?= $usuariosPorRol["cliente"] ?? 0 ?>
                         </h3>
 
                         <div class="mt-3 text-sky-700">
-                            <i class="fa-solid fa-keyboard text-xl"></i>
+                            <i class="fa-solid fa-user-check text-xl"></i>
                         </div>
 
                     </div>
@@ -1542,9 +1996,8 @@ if (
                                         <select name="rol" class="input-field" required>
 
                                             <option value="">Seleccionar rol</option>
-                                            <option value="supervisor">Supervisor</option>
-                                            <option value="operador">Operador de Almacén</option>
-                                            <option value="capturista">Capturista</option>
+                                            <option value="supervisor">Supervisor (Nivel 3)</option>
+                                            <option value="operador">Operador (Nivel 2)</option>
 
                                         </select>
 
@@ -1606,7 +2059,7 @@ if (
                                     <option value="">Todos los roles</option>
 
                                     <?php foreach (
-                                        ["admin", "supervisor", "operador", "capturista", "cliente"]
+                                        ["admin", "supervisor", "operador", "cliente"]
                                         as $rolFiltro
                                     ): ?>
 
@@ -1906,10 +2359,9 @@ if (
                                         </label>
 
                                         <select name="rol" id="editarRol" class="input-field" required>
-                                            <option value="supervisor">Supervisor</option>
-                                            <option value="operador">Operador de Almacén</option>
-                                            <option value="capturista">Capturista</option>
-                                            <option value="cliente">Cliente</option>
+                                            <option value="supervisor">Supervisor (Nivel 3)</option>
+                                            <option value="operador">Operador (Nivel 2)</option>
+                                            <option value="cliente">Cliente (Nivel 1)</option>
                                         </select>
 
                                     </div>
@@ -1955,7 +2407,7 @@ if (
                         </h3>
 
                         <p class="text-stone-500 mt-1">
-                            Registra productos, administra sus presentaciones y controla sus existencias.
+                            Registra productos y administra sus presentaciones y precios. Las existencias se controlan desde Inventario.
                         </p>
 
                     </div>
@@ -2066,7 +2518,7 @@ if (
                                         </h4>
 
                                         <p class="text-xs text-stone-500 mt-1">
-                                            Cada presentación tendrá su propio precio y stock.
+                                            Cada presentación tendrá su propio precio. Las existencias se administran desde Inventario.
                                         </p>
 
                                     </div>
@@ -2117,10 +2569,10 @@ if (
                                                    min="0" step="0.01" placeholder="25.00" required>
                                         </div>
 
-                                        <div>
-                                            <label class="block text-xs font-semibold mb-2">Stock</label>
-                                            <input type="number" name="stock[]" class="input-field"
-                                                   min="0" step="0.01" value="0" required>
+                                        <div class="md:col-span-5">
+                                            <p class="text-xs text-stone-500">
+                                                La presentación iniciará con stock 0.00. Registra sus existencias desde el módulo Inventario.
+                                            </p>
                                         </div>
 
                                     </div>
@@ -2429,7 +2881,7 @@ if (
                                     <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
 
                                         <h4 class="font-bold text-stone-800">
-                                            Presentaciones y existencias
+                                            Presentaciones y precios
                                         </h4>
 
                                         <button type="button"
@@ -2446,8 +2898,9 @@ if (
                                     <div id="contenedorPresentacionesEditar" class="space-y-4"></div>
 
                                     <p class="text-xs text-stone-500 mt-3">
-                                        Las presentaciones existentes se actualizan, pero no se eliminan desde este formulario.
-                                        Esto ayuda a conservar las referencias de los pedidos anteriores.
+                                        Aquí puedes modificar nombres, medidas y precios. Las existencias no se modifican desde Productos;
+                                        se administran exclusivamente en el módulo Inventario. Las presentaciones existentes no se eliminan
+                                        para conservar las referencias de pedidos anteriores.
                                     </p>
 
                                 </div>
@@ -2477,8 +2930,427 @@ if (
 
 
             <!-- =====================================
-                 MÓDULOS PENDIENTES
+                 MÓDULO DE SURTIDO
             ====================================== -->
+
+            <?php elseif ($moduloSeleccionado === "surtir" && tienePermiso("surtir")): ?>
+
+                <div id="surtir">
+                    <div class="mb-6">
+                        <h3 class="text-2xl font-bold text-stone-800">Surtido de órdenes</h3>
+                        <p class="text-stone-500 mt-1">
+                            Revisa las órdenes pendientes, valida las existencias y confirma su surtido.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-7">
+                        <div class="card p-5">
+                            <p class="text-sm text-stone-500">Órdenes pendientes</p>
+                            <p class="text-3xl font-bold text-stone-800 mt-2"><?= count($ordenesPendientes) ?></p>
+                            <i class="fa-solid fa-clipboard-list text-amber-700 text-xl mt-3"></i>
+                        </div>
+                        <div class="card p-5">
+                            <p class="text-sm text-stone-500">Líneas por preparar</p>
+                            <p class="text-3xl font-bold text-stone-800 mt-2">
+                                <?= array_sum(array_map(static fn($o) => (int)$o["total_lineas"], $ordenesPendientes)) ?>
+                            </p>
+                            <i class="fa-solid fa-boxes-stacked text-amber-700 text-xl mt-3"></i>
+                        </div>
+                        <div class="card p-5">
+                            <p class="text-sm text-stone-500">Proceso</p>
+                            <p class="text-lg font-bold text-stone-800 mt-3">Validación completa</p>
+                            <i class="fa-solid fa-shield-halved text-emerald-700 text-xl mt-3"></i>
+                        </div>
+                    </div>
+
+                    <?php if (count($ordenesPendientes) > 0): ?>
+                        <div class="space-y-6">
+                            <?php foreach ($ordenesPendientes as $ordenPendiente): ?>
+                                <?php
+                                    $idOrdenVista = (int)$ordenPendiente["id_orden"];
+                                    $lineasOrden = $detallesPendientes[$idOrdenVista] ?? [];
+                                    $ordenCompleta = count($lineasOrden) > 0;
+                                    foreach ($lineasOrden as $lineaOrden) {
+                                        if (empty($lineaOrden["id_presentacion"]) || empty($lineaOrden["nombre_presentacion"])) {
+                                            $ordenCompleta = false;
+                                        }
+                                    }
+                                ?>
+                                <div class="card p-6">
+                                    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-5">
+                                        <div>
+                                            <div class="flex flex-wrap items-center gap-3">
+                                                <h4 class="text-xl font-bold text-stone-800">Orden #<?= $idOrdenVista ?></h4>
+                                                <span class="bg-amber-100 text-amber-900 px-3 py-1 rounded-full text-xs font-semibold">Pendiente</span>
+                                            </div>
+                                            <p class="text-sm text-stone-500 mt-2">
+                                                Cliente ID: <?= (int)$ordenPendiente["id_cliente"] ?>
+                                                <span class="mx-2">•</span>
+                                                <?= escapar($ordenPendiente["fecha_creacion"]) ?>
+                                            </p>
+                                            <?php if (!empty($ordenPendiente["observaciones"])): ?>
+                                                <p class="text-sm text-stone-600 mt-2">Observaciones: <?= escapar($ordenPendiente["observaciones"]) ?></p>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="text-left lg:text-right">
+                                            <p class="text-xs text-stone-500">Total de la orden</p>
+                                            <p class="text-2xl font-bold text-stone-800">$<?= number_format((float)$ordenPendiente["total_final"], 2) ?></p>
+                                        </div>
+                                    </div>
+
+                                    <div class="table-container mb-5">
+                                        <table class="w-full text-sm text-left">
+                                            <thead class="bg-stone-100 text-stone-600">
+                                                <tr>
+                                                    <th class="p-3">Producto</th>
+                                                    <th class="p-3">Presentación</th>
+                                                    <th class="p-3">Cantidad</th>
+                                                    <th class="p-3">Precio unitario</th>
+                                                    <th class="p-3">Subtotal</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($lineasOrden as $lineaOrden): ?>
+                                                    <tr class="border-b border-stone-100">
+                                                        <td class="p-3 font-semibold"><?= escapar($lineaOrden["nombre_producto"] ?? "Producto no disponible") ?></td>
+                                                        <td class="p-3"><?= escapar($lineaOrden["nombre_presentacion"] ?? "Presentación no disponible") ?></td>
+                                                        <td class="p-3"><?= number_format((float)$lineaOrden["cantidad"], 2) ?></td>
+                                                        <td class="p-3">$<?= number_format((float)$lineaOrden["precio_unitario"], 2) ?></td>
+                                                        <td class="p-3">$<?= number_format((float)$lineaOrden["subtotal"], 2) ?></td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                                <?php if (!$lineasOrden): ?>
+                                                    <tr><td colspan="5" class="p-5 text-center text-red-700">Esta orden no tiene partidas registradas.</td></tr>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <?php if ($ordenCompleta): ?>
+                                        <form method="POST" action="panel.php?modulo=surtir#surtir"
+                                              onsubmit="return confirm('¿Confirmas el surtido de la orden #<?= $idOrdenVista ?>? Se descontarán las existencias del inventario.');"
+                                              class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                            <input type="hidden" name="csrf_token" value="<?= escapar($csrfToken) ?>">
+                                            <input type="hidden" name="accion" value="confirmar_surtido">
+                                            <input type="hidden" name="id_orden" value="<?= $idOrdenVista ?>">
+                                            <p class="text-xs text-stone-500">El sistema verificará todas las existencias antes de aplicar cualquier descuento.</p>
+                                            <button type="submit" class="btn-primary whitespace-nowrap">
+                                                <i class="fa-solid fa-box-open mr-2"></i>Confirmar surtido
+                                            </button>
+                                        </form>
+                                    <?php else: ?>
+                                        <div class="bg-red-50 border border-red-200 text-red-800 rounded-xl p-4 text-sm">
+                                            No se puede surtir esta orden: contiene partidas sin presentación válida o no tiene detalles.
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="card p-10 text-center">
+                            <i class="fa-solid fa-clipboard-check text-4xl text-emerald-700 mb-4"></i>
+                            <h4 class="text-xl font-bold text-stone-800">No hay órdenes pendientes</h4>
+                            <p class="text-stone-500 mt-2">Cuando se registren órdenes con estado Pendiente, aparecerán aquí para su preparación.</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+
+            <!-- =====================================
+                 MÓDULO DE INVENTARIO
+            ====================================== -->
+
+            <?php elseif ($moduloSeleccionado === "inventario" && tienePermiso("inventario")): ?>
+
+                <div id="inventario">
+
+                    <div class="mb-6">
+                        <h3 class="text-2xl font-bold text-stone-800">
+                            Control de inventario
+                        </h3>
+                        <p class="text-stone-500 mt-1">
+                            Administra las existencias por presentación y consulta el historial de movimientos.
+                        </p>
+                    </div>
+
+                    <?php
+                        $totalPresentaciones = count($listaInventario);
+                        $presentacionesSinStock = 0;
+                        $unidadesTotales = 0;
+
+                        foreach ($listaInventario as $filaInventario) {
+                            $stockFila = (float)$filaInventario["stock"];
+                            $unidadesTotales += $stockFila;
+                            if ($stockFila <= 0) {
+                                $presentacionesSinStock++;
+                            }
+                        }
+                    ?>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-7">
+
+                        <div class="card p-5">
+                            <p class="text-sm text-stone-500">Presentaciones activas</p>
+                            <p class="text-3xl font-bold text-stone-800 mt-2">
+                                <?= $totalPresentaciones ?>
+                            </p>
+                            <i class="fa-solid fa-boxes-stacked text-amber-700 text-xl mt-3"></i>
+                        </div>
+
+                        <div class="card p-5">
+                            <p class="text-sm text-stone-500">Presentaciones sin existencias</p>
+                            <p class="text-3xl font-bold text-stone-800 mt-2">
+                                <?= $presentacionesSinStock ?>
+                            </p>
+                            <i class="fa-solid fa-box-open text-red-700 text-xl mt-3"></i>
+                        </div>
+
+                        <div class="card p-5">
+                            <p class="text-sm text-stone-500">Unidades totales registradas</p>
+                            <p class="text-3xl font-bold text-stone-800 mt-2">
+                                <?= number_format($unidadesTotales, 2) ?>
+                            </p>
+                            <i class="fa-solid fa-warehouse text-emerald-700 text-xl mt-3"></i>
+                        </div>
+
+                    </div>
+
+                    <div class="card p-6 mb-7">
+
+                        <h3 class="text-lg font-bold text-stone-800 mb-2">
+                            <i class="fa-solid fa-arrows-rotate text-amber-700 mr-2"></i>
+                            Registrar movimiento
+                        </h3>
+
+                        <p class="text-sm text-stone-500 mb-5">
+                            Las cantidades de entrada y salida son movimientos. En Ajuste debes introducir el stock final real.
+                        </p>
+
+                        <?php if (count($listaInventario) > 0): ?>
+
+                            <form method="POST" action="panel.php?modulo=inventario#inventario"
+                                  class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                                <input type="hidden" name="csrf_token" value="<?= escapar($csrfToken) ?>">
+                                <input type="hidden" name="accion" value="registrar_movimiento_inventario">
+
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-semibold mb-2">
+                                        Presentación
+                                    </label>
+                                    <select name="id_presentacion" class="input-field" required>
+                                        <option value="">Seleccionar producto y presentación</option>
+                                        <?php foreach ($listaInventario as $itemInventario): ?>
+                                            <option value="<?= (int)$itemInventario["id_presentacion"] ?>">
+                                                <?= escapar($itemInventario["nombre_producto"]) ?>
+                                                — <?= escapar($itemInventario["nombre_presentacion"]) ?>
+                                                (Stock: <?= number_format((float)$itemInventario["stock"], 2) ?>)
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold mb-2">
+                                        Tipo de movimiento
+                                    </label>
+                                    <select name="tipo_movimiento" id="tipoMovimientoInventario"
+                                            class="input-field" required>
+                                        <option value="Entrada">Entrada</option>
+                                        <option value="Salida">Salida</option>
+                                        <option value="Ajuste">Ajuste de existencias</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold mb-2"
+                                           id="etiquetaCantidadInventario">
+                                        Cantidad
+                                    </label>
+                                    <input type="number" name="cantidad" class="input-field"
+                                           min="0" step="0.01" required>
+                                    <p class="text-xs text-stone-500 mt-1"
+                                       id="ayudaCantidadInventario">
+                                        Introduce la cantidad que ingresará o saldrá del inventario.
+                                    </p>
+                                </div>
+
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-semibold mb-2">
+                                        Motivo / Observaciones
+                                    </label>
+                                    <input type="text" name="motivo" class="input-field"
+                                           maxlength="255"
+                                           placeholder="Ej. Compra a proveedor, merma, corrección de conteo...">
+                                </div>
+
+                                <div class="md:col-span-2">
+                                    <button type="submit" class="btn-primary"
+                                            onclick="return confirm('¿Confirmas el registro de este movimiento?');">
+                                        <i class="fa-solid fa-floppy-disk mr-2"></i>
+                                        Registrar movimiento
+                                    </button>
+                                </div>
+
+                            </form>
+
+                        <?php else: ?>
+
+                            <div class="rounded-xl border border-amber-200 bg-amber-50 p-5 text-amber-900">
+                                No hay presentaciones activas disponibles. Primero registra un producto y sus presentaciones en el módulo Productos.
+                            </div>
+
+                        <?php endif; ?>
+
+                    </div>
+
+                    <div class="card p-6 mb-7">
+
+                        <div class="flex flex-wrap justify-between items-center gap-3 mb-5">
+                            <div>
+                                <h3 class="font-bold text-stone-800">Existencias actuales</h3>
+                                <p class="text-xs text-stone-500 mt-1">
+                                    El stock se controla individualmente por presentación.
+                                </p>
+                            </div>
+                            <input type="search" id="buscarInventario"
+                                   class="input-field max-w-xs"
+                                   placeholder="Buscar producto...">
+                        </div>
+
+                        <div class="table-container">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-stone-100 text-stone-600">
+                                    <tr>
+                                        <th class="p-3">Producto</th>
+                                        <th class="p-3">Categoría</th>
+                                        <th class="p-3">Presentación</th>
+                                        <th class="p-3">Precio</th>
+                                        <th class="p-3">Existencias</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (count($listaInventario) > 0): ?>
+                                        <?php foreach ($listaInventario as $itemInventario): ?>
+                                            <tr class="border-b border-stone-100 fila-inventario"
+                                                data-busqueda="<?= escapar(mb_strtolower(
+                                                    $itemInventario["nombre_producto"] . " " .
+                                                    ($itemInventario["categoria"] ?? "") . " " .
+                                                    $itemInventario["nombre_presentacion"]
+                                                )) ?>">
+                                                <td class="p-3 font-semibold text-stone-800">
+                                                    <?= escapar($itemInventario["nombre_producto"]) ?>
+                                                </td>
+                                                <td class="p-3">
+                                                    <?= escapar($itemInventario["categoria"] ?? "Sin categoría") ?>
+                                                </td>
+                                                <td class="p-3">
+                                                    <?= escapar($itemInventario["nombre_presentacion"]) ?>
+                                                </td>
+                                                <td class="p-3">
+                                                    $<?= number_format((float)$itemInventario["precio"], 2) ?>
+                                                </td>
+                                                <td class="p-3 font-semibold">
+                                                    <?= number_format((float)$itemInventario["stock"], 2) ?> unid.
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="5" class="p-6 text-center text-stone-500">
+                                                No hay existencias para mostrar.
+                                            </td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+
+                    <div class="card p-6">
+
+                        <div class="mb-5">
+                            <h3 class="font-bold text-stone-800">Historial de movimientos</h3>
+                            <p class="text-xs text-stone-500 mt-1">
+                                Se muestran los últimos 100 movimientos registrados.
+                            </p>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-stone-100 text-stone-600">
+                                    <tr>
+                                        <th class="p-3">Fecha</th>
+                                        <th class="p-3">Producto / Presentación</th>
+                                        <th class="p-3">Tipo</th>
+                                        <th class="p-3">Cantidad</th>
+                                        <th class="p-3">Stock anterior</th>
+                                        <th class="p-3">Stock nuevo</th>
+                                        <th class="p-3">Responsable</th>
+                                        <th class="p-3">Motivo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (count($historialInventario) > 0): ?>
+                                        <?php foreach ($historialInventario as $movimiento): ?>
+                                            <?php
+                                                $claseTipo = [
+                                                    "Entrada" => "bg-green-100 text-green-800",
+                                                    "Salida" => "bg-red-100 text-red-800",
+                                                    "Ajuste" => "bg-amber-100 text-amber-900",
+                                                    "Surtido" => "bg-blue-100 text-blue-800"
+                                                ][$movimiento["tipo"]] ?? "bg-stone-100 text-stone-700";
+                                            ?>
+                                            <tr class="border-b border-stone-100">
+                                                <td class="p-3 whitespace-nowrap">
+                                                    <?= escapar($movimiento["fecha_movimiento"]) ?>
+                                                </td>
+                                                <td class="p-3">
+                                                    <div class="font-semibold">
+                                                        <?= escapar($movimiento["nombre_producto"]) ?>
+                                                    </div>
+                                                    <div class="text-xs text-stone-500">
+                                                        <?= escapar($movimiento["nombre_presentacion"]) ?>
+                                                    </div>
+                                                </td>
+                                                <td class="p-3">
+                                                    <span class="<?= $claseTipo ?> px-2 py-1 rounded-lg text-xs font-semibold">
+                                                        <?= escapar($movimiento["tipo"]) ?>
+                                                    </span>
+                                                </td>
+                                                <td class="p-3">
+                                                    <?= number_format((float)$movimiento["cantidad"], 2) ?>
+                                                </td>
+                                                <td class="p-3">
+                                                    <?= number_format((float)$movimiento["stock_anterior"], 2) ?>
+                                                </td>
+                                                <td class="p-3 font-semibold">
+                                                    <?= number_format((float)$movimiento["stock_nuevo"], 2) ?>
+                                                </td>
+                                                <td class="p-3">
+                                                    <?= escapar($movimiento["nombre_usuario"] ?? "Usuario no disponible") ?>
+                                                </td>
+                                                <td class="p-3">
+                                                    <?= escapar($movimiento["motivo"] ?? "—") ?>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="8" class="p-6 text-center text-stone-500">
+                                                Todavía no hay movimientos registrados.
+                                            </td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+
+                </div>
+
 
             <?php elseif (isset($modulos[$moduloSeleccionado])): ?>
 
@@ -2593,14 +3465,13 @@ function agregarPresentacion(contenedorId, esEdicion = false, datos = null) {
     const fila = document.createElement("div");
 
     fila.className =
-        "grid grid-cols-1 md:grid-cols-5 gap-3 p-4 rounded-xl bg-stone-50 border border-stone-200";
+        "grid grid-cols-1 md:grid-cols-4 gap-3 p-4 rounded-xl bg-stone-50 border border-stone-200";
 
     const id = datos ? datos.id : 0;
     const nombre = datos ? datos.nombre : "";
     const valor = datos ? datos.valor : "";
     const unidad = datos ? datos.unidad : "g";
     const precio = datos ? datos.precio : "";
-    const stock = datos ? datos.stock : "0";
 
     const hiddenId = esEdicion
         ? `<input type="hidden" name="id_presentacion[]" value="${id}">`
@@ -2649,16 +3520,6 @@ function agregarPresentacion(contenedorId, esEdicion = false, datos = null) {
                    required>
         </div>
 
-        <div>
-            <label class="block text-xs font-semibold mb-2">Stock</label>
-            <input type="number"
-                   name="stock[]"
-                   class="input-field"
-                   min="0"
-                   step="0.01"
-                   required>
-        </div>
-
     `;
 
     const campos = fila.querySelectorAll("input, select");
@@ -2681,17 +3542,7 @@ function agregarPresentacion(contenedorId, esEdicion = false, datos = null) {
             campo.value = precio;
         }
 
-        if (campo.name === "stock[]") {
-            campo.value = stock;
-        }
-
     });
-
-    /*
-     * Las presentaciones existentes no se eliminan desde
-     * el formulario de edición. Solo se puede retirar una
-     * fila nueva que todavía no se ha guardado.
-     */
 
     if (esEdicion && id === 0) {
 
@@ -2699,7 +3550,7 @@ function agregarPresentacion(contenedorId, esEdicion = false, datos = null) {
 
         boton.type = "button";
         boton.className =
-            "md:col-span-5 text-sm text-red-700 hover:text-red-900 text-left";
+            "md:col-span-4 text-sm text-red-700 hover:text-red-900 text-left";
 
         boton.innerHTML =
             '<i class="fa-solid fa-trash mr-2"></i>Quitar presentación nueva';
@@ -2796,6 +3647,63 @@ if (buscadorProducto) {
         const texto = this.value.toLowerCase().trim();
 
         document.querySelectorAll(".fila-producto").forEach(fila => {
+
+            const contenido = fila.dataset.busqueda || "";
+
+            fila.style.display = contenido.includes(texto)
+                ? ""
+                : "none";
+
+        });
+
+    });
+
+}
+
+
+/* ================================================
+   FORMULARIO DE MOVIMIENTOS DE INVENTARIO
+================================================ */
+
+const tipoMovimientoInventario = document.getElementById("tipoMovimientoInventario");
+const etiquetaCantidadInventario = document.getElementById("etiquetaCantidadInventario");
+const ayudaCantidadInventario = document.getElementById("ayudaCantidadInventario");
+
+function actualizarAyudaMovimientoInventario() {
+
+    if (!tipoMovimientoInventario || !etiquetaCantidadInventario || !ayudaCantidadInventario) {
+        return;
+    }
+
+    if (tipoMovimientoInventario.value === "Ajuste") {
+        etiquetaCantidadInventario.textContent = "Stock final real";
+        ayudaCantidadInventario.textContent =
+            "Introduce la existencia total que contaste físicamente, no la diferencia.";
+    } else if (tipoMovimientoInventario.value === "Salida") {
+        etiquetaCantidadInventario.textContent = "Cantidad que saldrá";
+        ayudaCantidadInventario.textContent =
+            "Introduce la cantidad que se retirará. No puede superar el stock disponible.";
+    } else {
+        etiquetaCantidadInventario.textContent = "Cantidad que ingresará";
+        ayudaCantidadInventario.textContent =
+            "Introduce la cantidad que se agregará al inventario.";
+    }
+}
+
+if (tipoMovimientoInventario) {
+    tipoMovimientoInventario.addEventListener("change", actualizarAyudaMovimientoInventario);
+    actualizarAyudaMovimientoInventario();
+}
+
+const buscadorInventario = document.getElementById("buscarInventario");
+
+if (buscadorInventario) {
+
+    buscadorInventario.addEventListener("input", function() {
+
+        const texto = this.value.toLowerCase().trim();
+
+        document.querySelectorAll(".fila-inventario").forEach(fila => {
 
             const contenido = fila.dataset.busqueda || "";
 
