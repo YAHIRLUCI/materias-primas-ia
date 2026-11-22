@@ -882,6 +882,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $stockNuevo = round($stockAnterior - $cantidadCapturada, 2);
                 $cantidadMovimiento = $cantidadCapturada;
             } else {
+<<<<<<< HEAD
+=======
+                // En un ajuste, la cantidad capturada representa el stock real/objetivo.
+>>>>>>> 6ede5fe4a49d6fe8667faa811b6bff0b79e43461
                 $stockNuevo = $cantidadCapturada;
                 $cantidadMovimiento = round(abs($stockNuevo - $stockAnterior), 2);
 
@@ -975,6 +979,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $pdo->beginTransaction();
 
+<<<<<<< HEAD
+=======
+            // Bloquea la orden para impedir que dos usuarios la surtan al mismo tiempo.
+>>>>>>> 6ede5fe4a49d6fe8667faa811b6bff0b79e43461
             $buscarOrden = $pdo->prepare(
                 "SELECT id_orden, estado
                  FROM ordenes_compra
@@ -1005,6 +1013,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 throw new Exception("La orden no contiene productos para surtir.");
             }
 
+<<<<<<< HEAD
+=======
+            // Agrupa líneas repetidas de una misma presentación para validar y descontar el total.
+>>>>>>> 6ede5fe4a49d6fe8667faa811b6bff0b79e43461
             $cantidadesPorPresentacion = [];
             foreach ($detallesOrden as $detalle) {
                 $idPres = (int)($detalle["id_presentacion"] ?? 0);
@@ -1024,6 +1036,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $idsPresentaciones = array_keys($cantidadesPorPresentacion);
             $marcadores = implode(",", array_fill(0, count($idsPresentaciones), "?"));
 
+<<<<<<< HEAD
+=======
+            // Bloquea las filas de inventario en orden determinista.
+>>>>>>> 6ede5fe4a49d6fe8667faa811b6bff0b79e43461
             $bloquearPresentaciones = $pdo->prepare(
                 "SELECT id_presentacion, stock
                  FROM presentaciones_gramaje
@@ -1040,6 +1056,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     round((float)$filaStock["stock"], 2);
             }
 
+<<<<<<< HEAD
+=======
+            // Se valida todo antes de modificar cualquier existencia.
+>>>>>>> 6ede5fe4a49d6fe8667faa811b6bff0b79e43461
             foreach ($cantidadesPorPresentacion as $idPres => $cantidadNecesaria) {
                 if (!array_key_exists($idPres, $stockPorPresentacion)) {
                     throw new Exception("Una presentación de la orden ya no existe en el inventario.");
@@ -1091,6 +1111,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 ]);
             }
 
+<<<<<<< HEAD
+=======
+            // Actualización condicional adicional como protección contra doble surtido.
+>>>>>>> 6ede5fe4a49d6fe8667faa811b6bff0b79e43461
             $actualizarEstadoOrden = $pdo->prepare(
                 "UPDATE ordenes_compra
                  SET estado = 'Surtido'
@@ -2933,6 +2957,13 @@ if (
                  MÓDULO DE SURTIDO
             ====================================== -->
 
+<<<<<<< HEAD
+=======
+            <!-- =====================================
+                 MÓDULO DE INVENTARIO
+            ====================================== -->
+
+>>>>>>> 6ede5fe4a49d6fe8667faa811b6bff0b79e43461
             <?php elseif ($moduloSeleccionado === "surtir" && tienePermiso("surtir")): ?>
 
                 <div id="surtir">
@@ -3056,10 +3087,13 @@ if (
                 </div>
 
 
+<<<<<<< HEAD
             <!-- =====================================
                  MÓDULO DE INVENTARIO
             ====================================== -->
 
+=======
+>>>>>>> 6ede5fe4a49d6fe8667faa811b6bff0b79e43461
             <?php elseif ($moduloSeleccionado === "inventario" && tienePermiso("inventario")): ?>
 
                 <div id="inventario">
